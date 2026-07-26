@@ -1,0 +1,10 @@
+{
+  "operator": "F",
+  "bearer": "processor",
+  "action": "engage a subprocessor",
+  "condition": "",
+  "exception": "",
+  "negated": false,
+  "incident": "",
+  "counterparty": ""
+}

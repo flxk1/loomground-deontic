@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "loomground-deontic",
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "src/deontic/_version.py",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "src/deontic/artifacts/deontic-card.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "src/deontic/artifacts/conformance/manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

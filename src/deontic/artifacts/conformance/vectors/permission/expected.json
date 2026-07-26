@@ -1,0 +1,10 @@
+{
+  "operator": "P",
+  "bearer": "data subject",
+  "action": "withdraw consent",
+  "condition": "",
+  "exception": "",
+  "negated": false,
+  "incident": "",
+  "counterparty": ""
+}

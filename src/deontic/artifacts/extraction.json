@@ -1,0 +1,35 @@
+{
+  "describes": "Surface cues for lowering free text into the deontic language, as DATA — so a generic consumer (the ingest plane) can extract deterministically without any deontic code and without deontic shipping an extractor. The regex sources here are held equal to the language modules by tools/check_extraction.py; the modal cues (surface phrase -> modal class) are the one piece the package deliberately does not carry in code, published here for consumers.",
+  "dimension": "nD",
+  "modal_operator": {
+    "obligation": "O",
+    "permission": "P",
+    "prohibition": "F"
+  },
+  "operator_axis": {
+    "O": "causal",
+    "F": "causal",
+    "P": "intentional"
+  },
+  "modal_cues": [
+    { "modal": "prohibition", "pattern": "\\b(?:shall not|must not|may not|is not permitted to|is prohibited from|darf\\s+\\w+\\s+nicht|darf nicht)\\b" },
+    { "modal": "obligation", "pattern": "\\b(?:shall|must|is obliged to|is required to|has to|muss|m(?:ü|u)ssen|hat zu)\\b" },
+    { "modal": "permission", "pattern": "\\b(?:may|is permitted to|is free to|is entitled to|darf|kann)\\b" }
+  ],
+  "slot_cues": {
+    "condition_lead": "^\\s*(?:if|where|when|provided that|subject to|wenn|falls|sofern|soweit)\\b(?P<cond>.*?),",
+    "exception_lead": "\\b(?:unless|except|save where|es sei denn|abweichend)\\b\\s*(?P<exc>.*)$"
+  },
+  "incident_cues": {
+    "power_verb": "\\b(?:terminat\\w*|rescind\\w*|revoke\\w*|withdraw\\w*|waive\\w*|consent\\w*|approv\\w*|authoris\\w*|authoriz\\w*|assign\\w*|renew\\w*|exercis\\w*|elect\\w*|suspend\\w*|instruct\\w*|k(?:ü|u)ndig\\w*|widerruf\\w*|zur(?:ü|u)cktret\\w*|verzicht\\w*|zustimm\\w*|genehmig\\w*|abtret\\w*|verl(?:ä|a)nger\\w*|aus(?:ü|u)b\\w*|anweis\\w*)\\b",
+    "immunity": "\\b(?:not\\s+be\\s+(?:varied|amended|modified|assigned)|nicht\\s+(?:ge(?:ä|a)ndert|abgetreten|(?:ü|u)bertragen)\\s+werden)\\b"
+  },
+  "incident_rules": [
+    { "modal": "obligation", "incident": "duty" },
+    { "modal": "prohibition", "when_matches": "immunity", "incident": "immunity" },
+    { "modal": "prohibition", "when_matches": "power_verb", "incident": "disability" },
+    { "modal": "prohibition", "incident": "duty" },
+    { "modal": "permission", "when_matches": "power_verb", "incident": "power" },
+    { "modal": "permission", "incident": "privilege" }
+  ]
+}

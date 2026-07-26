@@ -1,0 +1,35 @@
+{
+  "describes": "The Hohfeldian incidents — the jurisdiction-neutral analytic layer beneath the deontic modals. Eight positions in four correlative pairs, with jural correlatives and jural opposites as checkable relations.",
+  "incidents": [
+    { "name": "claim",      "advantage": true,  "gloss": "a right that another perform (or forbear)" },
+    { "name": "duty",       "advantage": false, "gloss": "an obligation owed to a claim-holder" },
+    { "name": "privilege",  "advantage": true,  "gloss": "a liberty to act; no duty either way (Hohfeld's liberty)" },
+    { "name": "no-right",   "advantage": false, "gloss": "the absence of a claim against a privilege-holder" },
+    { "name": "power",      "advantage": true,  "gloss": "the ability to change legal positions (waive, consent, terminate, assign)" },
+    { "name": "liability",  "advantage": false, "gloss": "exposure to another's power" },
+    { "name": "immunity",   "advantage": true,  "gloss": "protection against another's power" },
+    { "name": "disability", "advantage": false, "gloss": "the absence of a power (no capacity to change positions)" }
+  ],
+  "correlatives": {
+    "describes": "Jural correlatives: if one party holds the left, the counterparty holds the right, over the same act.",
+    "claim": "duty",
+    "duty": "claim",
+    "privilege": "no-right",
+    "no-right": "privilege",
+    "power": "liability",
+    "liability": "power",
+    "immunity": "disability",
+    "disability": "immunity"
+  },
+  "opposites": {
+    "describes": "Jural opposites: the negation of a position for the same party.",
+    "claim": "no-right",
+    "no-right": "claim",
+    "duty": "privilege",
+    "privilege": "duty",
+    "power": "disability",
+    "disability": "power",
+    "immunity": "liability",
+    "liability": "immunity"
+  }
+}

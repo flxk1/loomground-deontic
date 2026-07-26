@@ -1,0 +1,30 @@
+{
+  "language": "Deontic",
+  "version": "0.1.2",
+  "status": "draft",
+  "summary": "The general deontic language and algebra: the three modal operators (O/P/F), the eight Hohfeldian incidents, a grammar for a deontic statement, the formula representation, and the composition algebra a reasoner combines with governance and other languages. Pure language, no inference.",
+  "operators": ["O", "P", "F"],
+  "operator_note": "One primitive (O); F≡O¬ and P≡¬O¬ are its duals. \"Right\" is not a modality — it is a Hohfeldian incident (claim / privilege).",
+  "incidents": ["claim", "duty", "privilege", "no-right", "power", "liability", "immunity", "disability"],
+  "statement": ["operator", "bearer", "action", "condition", "exception", "negated", "incident", "counterparty"],
+  "algebra": {
+    "carrier": "deontic formulae over a proposition; the eight Hohfeld incidents",
+    "operators": ["duality/negation", "conjunction of norms", "disjunction of norms", "contrary-to-duty conditional", "bilateral liberty (optional = P(a)∧P(¬a))", "incident correlative", "incident opposite"],
+    "laws": ["deontic square of opposition", "duty↔claim correlativity", "F≡O¬", "P≡¬O¬", "double-correlative identity", "operator clash (O/F, F/P over same bearer+action)"]
+  },
+  "well_formedness": [
+    "operator is one of O, P, F",
+    "bearer and action are non-empty (a grounded formula also cites its source sentence)",
+    "incident, when present, is one of the eight Hohfeld positions; '' is abstention",
+    "a rendered formula parses back to the same structured statement (round-trip)"
+  ],
+  "out_of_scope": ["inference", "theorem-proving", "conflict resolution", "obligation state tracking", "scheduling", "multi-hop subsumption", "surface-text extraction", "projection into a host representation"],
+  "artifacts": {
+    "llms": "llms.txt",
+    "extraction": "extraction.json",
+    "grammar": "grammar/deontic.ebnf",
+    "schema": { "statement": "schema/statement.schema.json" },
+    "vocabulary": "vocabulary/",
+    "conformance": "conformance/manifest.json"
+  }
+}

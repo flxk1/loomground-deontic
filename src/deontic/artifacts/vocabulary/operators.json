@@ -1,0 +1,17 @@
+{
+  "describes": "The three deontic modalities. One primitive (O) and two duals; stable identifiers used in formulae, schemas, and the audit log — do not rename without a migration.",
+  "primitive": "O",
+  "operators": {
+    "O": { "gloss": "obligatory", "name": "obligation", "dual": "¬P(¬a)" },
+    "P": { "gloss": "permitted", "name": "permission", "dual": "¬O(¬a)" },
+    "F": { "gloss": "forbidden", "name": "prohibition", "dual": "O(¬a)" }
+  },
+  "square": {
+    "describes": "The deontic square of opposition over a fixed proposition a.",
+    "contraries": [["O", "F"]],
+    "subcontraries": [["P", "P-not"]],
+    "contradictories": [["O", "P-not"], ["F", "P"]],
+    "subalternations": [["O", "P"], ["F", "P-not"]]
+  },
+  "notes": "\"Right\" is not a fourth modality: it is a Hohfeldian term that reduces to a P (liberty) for the holder or to the counterparty's O (the correlative of a duty). It is resolved in incidents.json (claim / privilege), not here."
+}

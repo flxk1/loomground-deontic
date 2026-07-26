@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 flxk1
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loomground-deontic"
+description = "General deontic language and algebra: the modal (O/P/F) and Hohfeld incident vocabulary, a deontic-statement grammar, the formula representation, and the composition algebra solver combines with governance and other languages. Pure language, no inference."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSES/Apache-2.0.txt", "LICENSES/CC-BY-4.0.txt"]
+authors = [{ name = "Loomground Contributors" }]
+# Foundational, like loomground-governance: no runtime dependencies. Deontic is
+# a language pack consumed *by* solver — it never imports solver, the rule
+# extractor, or any reasoning layer. See BOUNDARY.md.
+dependencies = []
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/flxk1/loomground-deontic"
+Repository = "https://github.com/flxk1/loomground-deontic"
+Issues = "https://github.com/flxk1/loomground-deontic/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "deontic._version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["deontic*"]
+
+# The authoritative language artifacts ship as package data under
+# src/deontic/artifacts/ — the deontic-statement grammar, the JSON schema, the
+# modal + incident vocabulary, the language card, and the conformance vectors.
+[tool.setuptools.package-data]
+deontic = [
+    "py.typed",
+    "artifacts/llms.txt",
+    "artifacts/deontic-card.json",
+    "artifacts/extraction.json",
+    "artifacts/grammar/*.ebnf",
+    "artifacts/schema/*.json",
+    "artifacts/vocabulary/*.json",
+    "artifacts/conformance/*.json",
+    "artifacts/conformance/vectors/*/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

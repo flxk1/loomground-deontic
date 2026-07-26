@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 flxk1
+#
+# Development and CI dependencies. loomground-deontic is foundational and stands
+# alone: it declares no runtime dependencies (see pyproject.toml), so there is no
+# sibling git tag to pin here — unlike loomground-solver, which pins governance.
+# Only the test tooling is needed.
+pytest==9.1.1

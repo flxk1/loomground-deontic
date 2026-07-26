@@ -1,0 +1,10 @@
+{
+  "describes": "Data-only naming of the reasoning dimensions a deontic statement can be carried on. This is vocabulary, not a binding: deontic declares no dispatch framework and imports no dimension type. A consumer (solver, an ND) projects operators onto its own dimensions at its seam; this file only names the axes the vocabulary refers to, so a projection can be validated against a shared list. The operator→dimension map does not live here.",
+  "dimensions": [
+    { "name": "causal",       "gloss": "triggered/caused by a condition (a duty or prohibition fires)" },
+    { "name": "intentional",  "gloss": "exists for a bearer's benefit (a permission or right)" },
+    { "name": "temporal",     "gloss": "bounded or dated in time (deadlines, resolutive conditions)" },
+    { "name": "conditional",  "gloss": "gated by an applicability antecedent" },
+    { "name": "defeasible",   "gloss": "carved out by an exception" }
+  ]
+}
