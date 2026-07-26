@@ -1,0 +1,91 @@
+# Deontic
+
+> Compact guide for AI agents to read, emit, and reason over the deontic
+> language — the general language and algebra of norms. It transcribes a norm
+> into a typed formula and states the identities over it; it never infers,
+> schedules, or resolves. A reasoner (solver) composes it with governance and
+> other languages.
+
+## Model
+
+- **Modalities (3):** `O` obligation (the primitive) · `P` permission · `F`
+  prohibition. Interdefinable: `F(a) ≡ O(¬a)`, `P(a) ≡ ¬O(¬a)`. There is no
+  fourth operator — "right" is not a modality (see Incidents).
+- **Statement:** an operator over a `(bearer : action)` pair, with optional
+  `condition` (applicability antecedent), `exception` (defeasibility), and
+  `negated` flag. Structured fields: `incident`, `counterparty`.
+- **Incidents (8, the Hohfeld layer):** four correlative pairs —
+  `claim`↔`duty`, `privilege`↔`no-right`, `power`↔`liability`,
+  `immunity`↔`disability`. Correlative = the counterparty's position over the
+  same act; opposite = the same party's negation. Both are involutions.
+
+## Grammar (canonical statement)
+
+```
+[ "if" "[" condition "]" "then" ] operator "(" bearer ":" [ "¬" ] action ")" [ "unless" "[" exception "]" ]
+operator = "O" | "P" | "F"
+```
+
+`parse(f.render())` reproduces the grammar slots (operator/bearer/action/
+condition/exception/negated). The `incident`/`counterparty` are structured
+fields, not part of the string — move formulae as `project(f)`/`to_dict()`, not
+the rendered text.
+
+## Algebra
+
+- **Duality:** `dual_of(op, a, negated=...)` exposes `F≡O¬`, `P≡¬O¬`,
+  `O≡¬P¬` as strings and simplifies double negation.
+- **Square:** `O`/`F` are contraries (`clashes`); `contradictory(op)` gives the
+  square diagonal.
+- **Correlativity:** `correlative(incident)`, `opposite(incident)`.
+- **Contrary-to-duty:** `ContraryToDuty(primary, secondary)` — a norm paired
+  with what holds if it is violated. Represented, not resolved.
+- **Bilateral liberty (the optional):** `optional(bearer, action)` =
+  `P(a) ∧ P(¬a)`. A derived construct, not a primitive; inconsistent with `O(a)`
+  or `F(a)`.
+- **Conflict:** `detect_conflicts(formulae)` flags incompatible signed
+  propositions over the same bearer/action (`candidate-escalate`); it never
+  resolves them.
+- **System health:** `system_health(formulae)` flags structural pathologies —
+  `normative-collapse` (`O∧F`), `liberty-absent`, `immunity-absent`. Flags, not
+  a verdict.
+
+## Composition contract (what a reasoner consumes)
+
+Couples to solver by string agreement only — deontic imports no solver type.
+- `dimension_affinity(op)` → a string in `{structural,causal,intentional,
+  temporal,relational}` (`O`/`F`→`causal`, `P`→`intentional`). The consumer
+  builds the typed edge.
+- `incident_vocabulary()` → the closed 8-set to inject into a norm-theory floor
+  (the solver default differs — inject this).
+- `conflict_candidates(formulae)` → collision edges (`predicate=may-conflict-with`).
+- `packet(f)` → the per-formula packet; `contract_surface()` self-describes the
+  surface, versioned.
+
+## Modeling rules the surface does not enforce
+
+- **A "right" is ambiguous.** A liberty-right (freedom to act) is a permission
+  (`formula_from_fields("permission", …)`, incident `privilege`). A claim-right
+  (a right that another act) is the counterparty's duty — use
+  `claim_right(holder, action, obligor)` → `O(obligor : action)`, incident
+  `duty`, counterparty `holder`. The bare `formula_from_fields("right", …)`
+  defaults to the liberty reading (`P`).
+- **Carry negation in the flag**, not the action text: `negated=True` over the
+  same action, or `P(a)`/`P(¬a)` will not pair and conflicts may be missed.
+
+## What it is not
+
+No inference (the SDL paradoxes — Ross, Good Samaritan, Chisholm/CTD — are
+artifacts of automated inference over deontic operators; shipping none, the
+language is paradox-neutral). No temporal type (deadlines are opaque text). No
+conflict resolution, no obligation-state tracking, no scheduling — those are the
+reasoning layer's, which imports this package.
+
+## Reference
+
+- Code: `deontic.operators`, `deontic.incidents`, `deontic.formula`,
+  `deontic.grammar`, `deontic.algebra`, `deontic.contract`.
+- Structured card: `deontic-card.json`. Vocabulary: `vocabulary/*.json`.
+  Grammar: `grammar/deontic.ebnf`. Schema: `schema/statement.schema.json`.
+- Conformance: `conformance/manifest.json` + vectors; run with
+  `deontic.run_conformance(impl)`.

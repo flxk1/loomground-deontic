@@ -1,0 +1,30 @@
+(* SPDX-License-Identifier: Apache-2.0 *)
+(* Copyright 2026 flxk1 *)
+(*
+ * The deontic-statement grammar. One norm, transcribed into a formal statement
+ * over a Standard Deontic Logic operator applied to a (bearer : action) pair,
+ * with an optional applicability condition and defeasibility exception.
+ *
+ * This grammar is the canonical rendered form: a well-formed formula renders to
+ * a string this grammar parses back to the same formula (round-trip). It is the
+ * language surface only — no inference, no resolution.
+ *)
+
+statement   = [ condition_ ] core [ exception_ ] ;
+
+condition_  = "if" , "[" , text , "]" , "then" ;
+exception_  = "unless" , "[" , text , "]" ;
+
+core        = operator , "(" , bearer , ":" , proposition , ")" ;
+
+proposition = [ "¬" ] , text ;
+operator    = "O" | "P" | "F" ;   (* one primitive O, two duals F≡O¬, P≡¬O¬ *)
+
+bearer      = text ;
+action      = text ;
+
+(* text is any run of characters excluding the structural delimiters
+ * "(", ")", ":", "[", "]" and the leading negation sign; whitespace at the
+ * ends is not significant. A bearer or action that must contain a delimiter is
+ * out of scope for the canonical surface and belongs to the structured fields. *)
+text        = ? one or more characters, not a structural delimiter ? ;

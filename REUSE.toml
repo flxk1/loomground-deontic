@@ -1,0 +1,61 @@
+version = 1
+SPDX-PackageName = "loomground-deontic"
+SPDX-PackageSupplier = "Organization: Loomground Contributors"
+
+# License + copyright for files that cannot carry an inline SPDX header. JSON has
+# no comment syntax; the .deo vectors are parsed inputs left untouched; py.typed
+# is an empty marker. Everything else
+# in the tree declares SPDX headers inline.
+
+[[annotations]]
+path = "src/deontic/artifacts/**/*.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "src/deontic/artifacts/conformance/vectors/**/*.deo"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "src/deontic/artifacts/llms.txt"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Normative language-definition prose. README.md also carries this identifier
+# inline; the explicit mapping makes the prose boundary reviewable in one place.
+[[annotations]]
+path = "README.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "src/deontic/py.typed"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [".gitignore", "NOTICE"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Release automation config (JSON has no comment syntax).
+[[annotations]]
+path = ["release-please-config.json", ".release-please-manifest.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "Apache-2.0"
+
+# The universal skill and portable package metadata: the manifests are JSON;
+# SKILL.md opens with YAML frontmatter that a comment header would break.
+[[annotations]]
+path = ["package.json", ".claude-plugin/plugin.json", "skills/deontic/SKILL.md"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 flxk1"
+SPDX-License-Identifier = "Apache-2.0"

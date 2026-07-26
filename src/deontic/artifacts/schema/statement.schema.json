@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loomground.dev/deontic/schema/statement.schema.json",
+  "title": "Deontic statement",
+  "description": "A norm transcribed into a deontic formula: an operator over a (bearer : action) pair, with optional condition and exception. Structured projection of the canonical grammar. No inference is implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["operator", "bearer", "action"],
+  "properties": {
+    "operator": {
+      "type": "string",
+      "enum": ["O", "P", "F"],
+      "description": "The deontic modality: O obligation, P permission, F prohibition. \"Right\" is not a modality — it is a Hohfeldian incident (see incident)."
+    },
+    "bearer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The norm-addressee the operator binds."
+    },
+    "action": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The proposition the operator scopes."
+    },
+    "condition": {
+      "type": "string",
+      "default": "",
+      "description": "Applicability antecedent; non-empty makes the norm conditional."
+    },
+    "exception": {
+      "type": "string",
+      "default": "",
+      "description": "Defeasibility carve-out; non-empty makes the norm defeasible."
+    },
+    "negated": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when the operator scopes a negative proposition (¬action)."
+    },
+    "incident": {
+      "type": "string",
+      "enum": ["claim", "duty", "privilege", "no-right", "power", "liability", "immunity", "disability", ""],
+      "default": "",
+      "description": "The Hohfeldian position the norm creates, from the addressee's perspective. '' = not classified (abstention, never a guess)."
+    },
+    "counterparty": {
+      "type": "string",
+      "default": "",
+      "description": "The correlative role (claim-holder / party exposed to a power) when the norm names it."
+    }
+  }
+}

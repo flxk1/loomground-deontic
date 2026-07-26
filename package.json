@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "name": "loomground-deontic",
+  "version": "0.1.2",
+  "description": "Transcribe a natural-language norm into a verified deontic formula: split it into modality (O/P/F), bearer, and action; classify the Hohfeldian incident; resolve a 'right' as a claim or a liberty; validate with a bundled stdlib engine; and flag candidate conflicts. Transcribes and flags, never infers or resolves.",
+  "author": {
+    "name": "Loomground Contributors"
+  },
+  "keywords": [
+    "loomground",
+    "deontic",
+    "norms",
+    "obligation",
+    "hohfeld",
+    "legal"
+  ],
+  "skills": [
+    {
+      "name": "deontic",
+      "path": "skills/deontic",
+      "provides": [
+        "deontic.transcribe",
+        "deontic.validate",
+        "deontic.classify-incident",
+        "deontic.detect-conflicts"
+      ]
+    }
+  ],
+  "capabilities": {
+    "deontic.transcribe": {
+      "mode": "read",
+      "humanConfirmation": false
+    },
+    "deontic.validate": {
+      "mode": "read",
+      "humanConfirmation": false
+    },
+    "deontic.classify-incident": {
+      "mode": "read",
+      "humanConfirmation": false
+    },
+    "deontic.detect-conflicts": {
+      "mode": "read",
+      "humanConfirmation": false
+    }
+  },
+  "runtime": {
+    "python": ">=3.10",
+    "network": false,
+    "config": [],
+    "requires": []
+  },
+  "adapters": {
+    "claude": {
+      "marketplaceSource": {
+        "source": "url",
+        "url": "https://github.com/flxk1/loomground-deontic.git"
+      }
+    },
+    "codex": {
+      "interface": {
+        "displayName": "Deontic",
+        "shortDescription": "Transcribe a norm into a verified deontic formula",
+        "longDescription": "Turn a natural-language norm into a verified deontic formula: split it into modality (O/P/F), bearer, and action; resolve a 'right' as a claim or a liberty; classify the Hohfeldian incident; validate with the bundled stdlib engine; and flag candidate conflicts. Transcribes and flags, never infers or resolves.",
+        "developerName": "Loomground Contributors",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Transcribe a norm to O/P/F(bearer : action)",
+          "Claim vs liberty resolution",
+          "Hohfeld incident classification",
+          "Bundled-engine validation",
+          "Candidate-conflict flagging"
+        ],
+        "defaultPrompt": [
+          "Formalise this obligation as a deontic statement.",
+          "Is this right a claim or a liberty?",
+          "Validate this deontic formula.",
+          "Are these norms in conflict?"
+        ]
+      }
+    },
+    "generic": {}
+  }
+}

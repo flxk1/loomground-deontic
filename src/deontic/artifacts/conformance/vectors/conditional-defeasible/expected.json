@@ -1,0 +1,10 @@
+{
+  "operator": "O",
+  "bearer": "controller",
+  "action": "implement TOMs",
+  "condition": "processing is carried out",
+  "exception": "Art.11",
+  "negated": false,
+  "incident": "",
+  "counterparty": ""
+}

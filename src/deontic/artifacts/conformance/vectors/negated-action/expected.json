@@ -1,0 +1,10 @@
+{
+  "operator": "O",
+  "bearer": "controller",
+  "action": "retain the record",
+  "condition": "",
+  "exception": "",
+  "negated": true,
+  "incident": "",
+  "counterparty": ""
+}

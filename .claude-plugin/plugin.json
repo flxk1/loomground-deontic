@@ -1,0 +1,16 @@
+{
+  "name": "loomground-deontic",
+  "version": "0.1.2",
+  "description": "Transcribe a natural-language norm into a verified deontic formula: split it into modality (O/P/F), bearer, and action; classify the Hohfeldian incident; resolve a 'right' as a claim or a liberty; validate with a bundled stdlib engine; and flag candidate conflicts. Transcribes and flags, never infers or resolves.",
+  "author": {
+    "name": "Loomground Contributors"
+  },
+  "keywords": [
+    "loomground",
+    "deontic",
+    "norms",
+    "obligation",
+    "hohfeld",
+    "legal"
+  ]
+}
