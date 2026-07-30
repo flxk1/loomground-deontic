@@ -214,6 +214,11 @@ def detect_conflicts(formulae: list[DeonticFormula]) -> list[dict[str, Any]]:
     clashes with ``O(¬a)``, while ``O(¬a)`` and ``F(a)`` agree. This flags; it
     never resolves — a genuine conflict is a candidate for the consumer's
     oversight queue, not something the language decides.
+
+    The clash key is bearer + action only: condition/exception scope is
+    deliberately excluded, so two duties that could never fire together are still
+    flagged. Over-flagging is the safe direction here — consumers should expect
+    candidates the scope would rule out and filter them downstream.
     """
     out: list[dict[str, Any]] = []
     for i in range(len(formulae)):
