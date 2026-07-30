@@ -14,7 +14,7 @@ license-files = ["LICENSES/Apache-2.0.txt", "LICENSES/CC-BY-4.0.txt"]
 authors = [{ name = "Loomground Contributors" }]
 # Foundational, like loomground-governance: no runtime dependencies. Deontic is
 # a language pack consumed *by* solver — it never imports solver, the rule
-# extractor, or any reasoning layer. See BOUNDARY.md.
+# extractor, or any reasoning layer. See the README ("What's here").
 dependencies = []
 dynamic = ["version"]
 

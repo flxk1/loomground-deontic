@@ -44,7 +44,7 @@ deterministic:
 import deontic_engine as eng
 f = eng.formula_from_fields("prohibition", "processor", "engage a subprocessor",
                             exception="the controller authorises it",
-                            raw_sentence="The processor shall not engage a subprocessor without authorisation.")
+                            raw_sentence="The processor shall not engage a subprocessor.")
 eng.render(f)      # F(processor : engage a subprocessor) unless [the controller authorises it]
 f["incident"]      # "duty"
 eng.correlative(f["incident"])   # "claim" — the counterparty's position
