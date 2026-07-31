@@ -25,7 +25,8 @@ def main(argv: list[str]) -> int:
         print(__doc__)
         return 0
     if argv[0] == "--file":
-        source = open(argv[1], encoding="utf-8").read().strip()
+        with open(argv[1], encoding="utf-8") as fh:
+            source = fh.read().strip()
     else:
         source = argv[0]
     try:
