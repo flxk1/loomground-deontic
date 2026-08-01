@@ -61,11 +61,11 @@ for a consumer.
 
 ## Status and open decisions
 
-`0.1.0`, draft. Two boundary decisions are set with foundational defaults, open
-to revision before a first tag:
+`0.1.2`, draft. Two boundary decisions are set with foundational defaults, open
+to revision before `1.0`:
 
 - **Distribution/import name.** `loomground-deontic` (dist) with `deontic`
-  (import). Change before the first tag if a bare core-language name is wanted.
+  (import). Change before `1.0` if a bare core-language name is wanted.
 - **Grammar substrate.** Deontic **stands alone** — `dependencies = []`, no
   dependency on the core Loomground language from governance. Revisit if the nD
   grammar substrate should be shared rather than restated.
