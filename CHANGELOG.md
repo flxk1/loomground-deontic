@@ -2,6 +2,14 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
+## [0.1.3](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.1.2...loomground-deontic-v0.1.3) (2026-08-01)
+
+
+### Documentation
+
+* fix stale version, tag framing, and skill example ([c816200](https://github.com/flxk1/loomground-deontic/commit/c8162009e0f3679697db3421ff075eeb8dd56f96))
+* fix stale version, tag framing, and skill example ([3eb0b60](https://github.com/flxk1/loomground-deontic/commit/3eb0b6057ecc3691b88489a57b62e85fb227e88d))
+
 ## [0.1.2] - 2026-07-26
 
 - Publish the privacy-clean, license-split one-root snapshot.
