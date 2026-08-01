@@ -8,6 +8,10 @@
       "version-file": "src/deontic/_version.py",
       "extra-files": [
         {
+          "type": "generic",
+          "path": "src/deontic/_version.py"
+        },
+        {
           "type": "json",
           "path": "src/deontic/artifacts/deontic-card.json",
           "jsonpath": "$.version"
