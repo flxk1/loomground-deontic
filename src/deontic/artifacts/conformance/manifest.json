@@ -1,18 +1,77 @@
 {
-  "version": "0.1.2",
+  "version": "0.1.3",
   "describes": "Conformance vectors defining a conforming deontic-language implementation. Each statement vector parses, validates, and projects to expected.json; each negative vector is rejected at the declared stage.",
   "kinds": {
     "statement": "input.deo + expected.json (structured projection)",
     "negative": "input.deo + reject.json: {stage: parse|validate}"
   },
   "vectors": [
-    { "name": "obligation-basic", "kind": "statement", "files": ["input.deo", "expected.json"] },
-    { "name": "conditional-defeasible", "kind": "statement", "files": ["input.deo", "expected.json"] },
-    { "name": "prohibition", "kind": "statement", "files": ["input.deo", "expected.json"] },
-    { "name": "permission", "kind": "statement", "files": ["input.deo", "expected.json"] },
-    { "name": "negated-action", "kind": "statement", "files": ["input.deo", "expected.json"] },
-    { "name": "reject-no-core", "kind": "negative", "stage": "parse", "files": ["input.deo", "reject.json"] },
-    { "name": "reject-bad-operator", "kind": "negative", "stage": "parse", "files": ["input.deo", "reject.json"] },
-    { "name": "reject-right-operator", "kind": "negative", "stage": "parse", "files": ["input.deo", "reject.json"] }
+    {
+      "name": "obligation-basic",
+      "kind": "statement",
+      "files": [
+        "input.deo",
+        "expected.json"
+      ]
+    },
+    {
+      "name": "conditional-defeasible",
+      "kind": "statement",
+      "files": [
+        "input.deo",
+        "expected.json"
+      ]
+    },
+    {
+      "name": "prohibition",
+      "kind": "statement",
+      "files": [
+        "input.deo",
+        "expected.json"
+      ]
+    },
+    {
+      "name": "permission",
+      "kind": "statement",
+      "files": [
+        "input.deo",
+        "expected.json"
+      ]
+    },
+    {
+      "name": "negated-action",
+      "kind": "statement",
+      "files": [
+        "input.deo",
+        "expected.json"
+      ]
+    },
+    {
+      "name": "reject-no-core",
+      "kind": "negative",
+      "stage": "parse",
+      "files": [
+        "input.deo",
+        "reject.json"
+      ]
+    },
+    {
+      "name": "reject-bad-operator",
+      "kind": "negative",
+      "stage": "parse",
+      "files": [
+        "input.deo",
+        "reject.json"
+      ]
+    },
+    {
+      "name": "reject-right-operator",
+      "kind": "negative",
+      "stage": "parse",
+      "files": [
+        "input.deo",
+        "reject.json"
+      ]
+    }
   ]
 }
