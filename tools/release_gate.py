@@ -97,7 +97,13 @@ def check_source_contract() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     if "## [Unreleased]" not in changelog:
         raise AssertionError("CHANGELOG.md has no Unreleased section")
-    if not re.search(rf"^## \[{re.escape(version)}\] - \d{{4}}-\d{{2}}-\d{{2}}$", changelog, re.M):
+    # Hand-written entries read `## [X.Y.Z] - YYYY-MM-DD`; release-please emits
+    # `## [X.Y.Z](compare-url) (YYYY-MM-DD)`. Both are dated entries.
+    dated_entry = (
+        rf"^## \[{re.escape(version)}\]"
+        rf"(?: - \d{{4}}-\d{{2}}-\d{{2}}|\([^)]*\) \(\d{{4}}-\d{{2}}-\d{{2}}\))$"
+    )
+    if not re.search(dated_entry, changelog, re.M):
         raise AssertionError(f"CHANGELOG.md has no dated entry for {version}")
 
     for workflow in sorted((ROOT / ".github/workflows").glob("*.yml")):
