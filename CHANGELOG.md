@@ -2,7 +2,7 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
-## [0.1.3](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.1.2...loomground-deontic-v0.1.3) (2026-08-01)
+## [0.1.3] - 2026-08-01
 
 
 ### Documentation

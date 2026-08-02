@@ -61,7 +61,7 @@ for a consumer.
 
 ## Status and open decisions
 
-`0.1.2`, draft. Two boundary decisions are set with foundational defaults, open
+`0.1.3`, draft. Two boundary decisions are set with foundational defaults, open
 to revision before `1.0`:
 
 - **Distribution/import name.** `loomground-deontic` (dist) with `deontic`
