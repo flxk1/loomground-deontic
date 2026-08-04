@@ -91,8 +91,11 @@ def parse(source: str) -> DeonticFormula:
 def validate(formula: DeonticFormula) -> dict[str, Any]:
     """Check a formula's well-formedness. Returns ``{"ok": bool, "errors": [...]}``.
 
-    Well-formed means: a catalogued operator, a non-empty bearer and action, and
-    — when set — an incident drawn from the eight Hohfeld positions. This is
+    Well-formed means: a catalogued operator, a non-empty bearer and action,
+    — when set — an incident drawn from the eight Hohfeld positions, and — when
+    set — a ``cross_references`` list of non-empty strings. The optional carry
+    fields (``deadline``/``cross_references``/``sanction``) are opaque text; empty,
+    they add nothing, so an existing norm validates exactly as before. This is
     structural validation, not a judgment about the norm.
     """
     errors: list[str] = []
@@ -104,6 +107,10 @@ def validate(formula: DeonticFormula) -> dict[str, Any]:
         errors.append("empty action")
     if formula.incident and formula.incident not in INCIDENTS:
         errors.append(f"unknown incident: {formula.incident!r}")
+    refs = formula.cross_references
+    if refs and (not isinstance(refs, list)
+                 or not all(isinstance(r, str) and r.strip() for r in refs)):
+        errors.append("cross_references must be a list of non-empty strings")
     return {"ok": not errors, "errors": errors}
 
 
