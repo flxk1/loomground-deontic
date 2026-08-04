@@ -97,6 +97,8 @@ def check_regex_validity() -> list[str]:
     patterns = [c["pattern"] for c in EX["modal_cues"]]
     patterns += list(EX["incident_cues"].values())
     patterns += list(EX["slot_cues"].values())
+    for section in ("deadline_cues", "cross_reference_cues", "sanction_cues"):
+        patterns += list(EX.get(section, {}).values())
     for p in patterns:
         try:
             re.compile(p)
