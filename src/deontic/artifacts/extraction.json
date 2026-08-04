@@ -1,5 +1,5 @@
 {
-  "describes": "Surface cues for lowering free text into the deontic language, as DATA — so a generic consumer (the ingest plane) can extract deterministically without any deontic code and without deontic shipping an extractor. The regex sources here are held equal to the language modules by tools/check_extraction.py; the modal cues (surface phrase -> modal class) are the one piece the package deliberately does not carry in code, published here for consumers.",
+  "describes": "Surface cues for lowering free text into the deontic language, as DATA — so a generic consumer (the ingest plane) can extract deterministically without any deontic code and without deontic shipping an extractor. The regex sources here are held equal to the language modules by tools/check_extraction.py; the modal cues (surface phrase -> modal class) are the one piece the package deliberately does not carry in code, published here for consumers. The deadline_cues, cross_reference_cues, and sanction_cues are additive: they populate the optional carry fields (deadline / cross_references / sanction) added to statement.schema.json; like the modal cues they are published as data only, carried nowhere in code (opaque text the reasoning layer types, resolves, and applies). Each named group holds the extracted value.",
   "dimension": "nD",
   "modal_operator": {
     "obligation": "O",
@@ -31,5 +31,16 @@
     { "modal": "prohibition", "incident": "duty" },
     { "modal": "permission", "when_matches": "power_verb", "incident": "power" },
     { "modal": "permission", "incident": "privilege" }
-  ]
+  ],
+  "deadline_cues": {
+    "relative": "\\b(?:with(?:in)?|no later than|not later than|innerhalb\\s+von|binnen|sp(?:ä|a)testens)\\s+(?P<deadline>\\d+\\s+\\w+)",
+    "absolute": "\\b(?:by|by the end of|not later than|until|bis(?:\\s+zum)?)\\s+(?P<deadline>\\d{4}-\\d{2}-\\d{2}|\\d{1,2}(?:\\s+|\\.)\\w+(?:\\s+\\d{4})?)"
+  },
+  "cross_reference_cues": {
+    "instrument": "\\b(?:in accordance with|pursuant to|as (?:set out|referred to|provided|specified) in|under|subject to|gem(?:ä|a)(?:ß|ss)|nach|im Sinne (?:des|der))\\s+(?P<ref>(?:Article|Art\\.?|Section|Sec\\.?|§|Regulation|Directive|Annex|Artikel|Absatz|Abs\\.?|Anhang)\\s*[\\w.()/\\-]+)"
+  },
+  "sanction_cues": {
+    "lead": "\\b(?:on pain of|under penalty of|subject to (?:a\\s+)?(?:penalty|fine|sanction)|shall be (?:liable|punishable)|punishable by|liable to (?:a\\s+)?(?:fine|penalty)|unter Androhung|bei (?:Androhung|Strafe|Vermeidung))\\b(?P<sanction>[^.]*)",
+    "amount": "\\b(?:fine|penalty|Geldbu(?:ß|ss)e|Bu(?:ß|ss)geld)\\b[^.]*?(?P<amount>(?:EUR|€|USD|\\$|GBP|£)\\s?[\\d.,]+|[\\d.,]+\\s?(?:EUR|euro|€|USD|dollars?))"
+  }
 }

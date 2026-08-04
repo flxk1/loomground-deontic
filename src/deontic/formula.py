@@ -24,7 +24,7 @@ we do not derive. This module imports only the standard library.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Any
 
 from .operators import (
@@ -61,6 +61,14 @@ class DeonticFormula:
     ``incident`` (optional) is the Hohfeldian position from
     :mod:`deontic.incidents`; '' means unclassified.
 
+    ``deadline``/``cross_references``/``sanction`` are **optional, additive** carry
+    fields — the time by which the norm bites, the instruments it points to, and
+    the consequence attached to breach — kept as **opaque text** so a downstream
+    reasoner can type, resolve, and apply them. They are carried, never
+    interpreted here; the canonical statement surface (operator over a
+    bearer:action pair with condition/exception) is unchanged, and a norm that
+    sets none of them serialises, validates, and renders exactly as before.
+
     ``language``/``raw_sentence``/``confidence`` are provenance metadata carried
     for audit — the algebra's laws never depend on them.
     """
@@ -73,6 +81,9 @@ class DeonticFormula:
     negated: bool = False
     incident: str = ""
     counterparty: str = ""
+    deadline: str = ""
+    cross_references: list[str] = field(default_factory=list)
+    sanction: str = ""
     language: str = "en"
     raw_sentence: str = ""
     confidence: float = 0.0
@@ -95,14 +106,26 @@ class DeonticFormula:
     def render(self) -> str:
         """The canonical one-line statement, with condition + exception.
 
-        The string this returns is parsed back to an equal formula by
-        :func:`deontic.grammar.parse` (round-trip over the structured slots).
+        The canonical core (``[if [c] then] OP(bearer : action) [unless [e]]``) is
+        parsed back to an equal formula by :func:`deontic.grammar.parse`
+        (round-trip over the structured slots). The optional carry fields append
+        readable annotations *after* the canonical statement — ``within [...]``
+        (deadline), ``in accordance with [...]`` (cross-references), ``on pain of
+        [...]`` (sanction) — and only when set. They lie outside the canonical
+        grammar; :func:`parse` recovers the canonical core, so a norm that carries
+        none of them renders and round-trips exactly as before.
         """
         s = self.core()
         if self.condition:
             s = f"if [{self.condition}] then {s}"
         if self.exception:
             s = f"{s} unless [{self.exception}]"
+        if self.deadline:
+            s = f"{s} within [{self.deadline}]"
+        if self.cross_references:
+            s = f"{s} in accordance with [{'; '.join(self.cross_references)}]"
+        if self.sanction:
+            s = f"{s} on pain of [{self.sanction}]"
         return s
 
     def to_dict(self) -> dict[str, Any]:
@@ -112,6 +135,9 @@ class DeonticFormula:
         d["operator_gloss"] = gloss(self.operator)
         d["conditional"] = bool(self.condition)
         d["defeasible"] = bool(self.exception)
+        d["timebound"] = bool(self.deadline)
+        d["cross_referenced"] = bool(self.cross_references)
+        d["sanctioned"] = bool(self.sanction)
         return d
 
 
@@ -124,6 +150,9 @@ def formula_from_fields(
     exception: str = "",
     incident: str = "",
     counterparty: str = "",
+    deadline: str = "",
+    cross_references: list[str] | None = None,
+    sanction: str = "",
     language: str = "en",
     raw_sentence: str = "",
     confidence: float = 0.0,
@@ -134,6 +163,9 @@ def formula_from_fields(
     an uncatalogued class maps to O and drops confidence by 0.1 (the operator is
     then a fallback, not a read). Empty subject/action become ``"(unspecified)"``
     so :func:`is_grounded` can tell a placeholder from a real bearer.
+
+    ``deadline``/``cross_references``/``sanction`` are optional, additive carry
+    fields (opaque text); omit them and the formula is identical to before.
     """
     op = MODAL_TO_OP.get(modal)
     if op is None:
@@ -148,6 +180,9 @@ def formula_from_fields(
         negated=False,  # prohibition is carried by operator="F"
         incident=incident,
         counterparty=counterparty,
+        deadline=deadline,
+        cross_references=list(cross_references) if cross_references else [],
+        sanction=sanction,
         language=language,
         raw_sentence=raw_sentence,
         confidence=round(confidence, 3),
