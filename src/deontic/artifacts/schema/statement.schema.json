@@ -47,6 +47,22 @@
       "type": "string",
       "default": "",
       "description": "The correlative role (claim-holder / party exposed to a power) when the norm names it."
+    },
+    "deadline": {
+      "type": "string",
+      "default": "",
+      "description": "Optional, additive. The time by which the norm bites, as opaque text (e.g. \"within 24 hours\", \"by 31 December 2026\"). Carried, not typed or scheduled — the reasoning layer types it. '' = none."
+    },
+    "cross_references": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Optional, additive. Instruments this norm points to, as opaque text (e.g. \"Article 43\", \"§ 22 BDSG\"). Carried, not resolved. [] = none."
+    },
+    "sanction": {
+      "type": "string",
+      "default": "",
+      "description": "Optional, additive. The consequence attached to breach, as opaque text (e.g. \"a fine up to EUR 20 000 000\"). Carried, not applied. '' = none."
     }
   }
 }
