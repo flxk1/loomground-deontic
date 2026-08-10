@@ -14,6 +14,8 @@ gate proves they have not:
   C. Incident rules — applying the published rules reproduces
      `deontic.incidents.classify_incident` over an oracle set covering every branch.
   D. Regex validity — every published pattern compiles.
+  E. Validity rules — every effect in `validity_rules` is carried by a cue and
+     vice versa, and every non-abstaining incident names a real Hohfeld incident.
 
 Run standalone: python3 tools/check_extraction.py
 """
@@ -95,6 +97,7 @@ def check_incident_rules() -> list[str]:
 def check_regex_validity() -> list[str]:
     fails = []
     patterns = [c["pattern"] for c in EX["modal_cues"]]
+    patterns += [c["pattern"] for c in EX.get("validity_cues", [])]
     patterns += list(EX["incident_cues"].values())
     patterns += list(EX["slot_cues"].values())
     for section in ("deadline_cues", "cross_reference_cues", "sanction_cues"):
@@ -107,11 +110,30 @@ def check_regex_validity() -> list[str]:
     return fails
 
 
+def check_validity_rules() -> list[str]:
+    """Validity is constitutive, not a fourth operator: rules may only map an
+    effect its cues actually carry onto a real Hohfeld incident (or abstain)."""
+    fails = []
+    cue_effects = {c["effect"] for c in EX.get("validity_cues", [])}
+    rule_effects = {r["effect"] for r in EX.get("validity_rules", [])}
+    for effect in sorted(rule_effects - cue_effects):
+        fails.append(f"validity_rules effect {effect!r} has no cue carrying it")
+    for effect in sorted(cue_effects - rule_effects):
+        fails.append(f"validity_cues effect {effect!r} has no incident rule")
+    for rule in EX.get("validity_rules", []):
+        incident = rule.get("incident")
+        if incident and incident not in di.INCIDENTS:
+            fails.append(f"validity_rules[{rule['effect']}] incident {incident!r} "
+                         f"is not a Hohfeld incident")
+    return fails
+
+
 _CHECKS = (
     ("incident cues equal the language", check_incident_cues),
     ("operator mapping / axis equal the language", check_operator_mapping),
     ("incident rules reproduce classify_incident", check_incident_rules),
     ("every published pattern compiles", check_regex_validity),
+    ("validity rules stay on the published incidents", check_validity_rules),
 )
 
 
