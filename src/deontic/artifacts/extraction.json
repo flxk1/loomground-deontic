@@ -1,5 +1,5 @@
 {
-  "describes": "Surface cues for lowering free text into the deontic language, as DATA — so a generic consumer (the ingest plane) can extract deterministically without any deontic code and without deontic shipping an extractor. The regex sources here are held equal to the language modules by tools/check_extraction.py; the modal cues (surface phrase -> modal class) are the one piece the package deliberately does not carry in code, published here for consumers. The deadline_cues, cross_reference_cues, and sanction_cues are additive: they populate the optional carry fields (deadline / cross_references / sanction) added to statement.schema.json; like the modal cues they are published as data only, carried nowhere in code (opaque text the reasoning layer types, resolves, and applies). Each named group holds the extracted value.",
+  "describes": "Surface cues for lowering free text into the deontic language, as DATA — so a generic consumer (the ingest plane) can extract deterministically without any deontic code and without deontic shipping an extractor. The regex sources here are held equal to the language modules by tools/check_extraction.py; the modal cues (surface phrase -> modal class) are the one piece the package deliberately does not carry in code, published here for consumers. The deadline_cues, cross_reference_cues, and sanction_cues are additive: they populate the optional carry fields (deadline / cross_references / sanction) added to statement.schema.json; like the modal cues they are published as data only, carried nowhere in code (opaque text the reasoning layer types, resolves, and applies). Each named group holds the extracted value; the FULL match is the cue's published surface (a consumer that records or removes the surface anchors on the full match, so the clause-level deadline entries deliberately cover the whole deadline clause — connective, feasibility qualifier, cue, value, reference-point tail — while the named group still holds only the value). The validity_cues lower CONSTITUTIVE validity norms (a term 'is void' / 'ist unwirksam' directs no conduct; it denies legal effect): each cue carries an effect (void / preserved / substitution), and validity_rules maps an effect to the Hohfeldian incident borne by the norm's addressee — void is the drafter's disability to give the term legal effect (the counterparty's immunity follows via the published correlatives); preserved and substitution abstain ('') as consequence shapes with no single addressee incident. Validity is NOT a fourth modal operator: the operator set stays O/P/F, and validity lives in the constitutive/incident layer the language already publishes.",
   "dimension": "nD",
   "modal_operator": {
     "obligation": "O",
@@ -33,9 +33,21 @@
     { "modal": "permission", "incident": "privilege" }
   ],
   "deadline_cues": {
+    "relative_clause_en": "(?:\\band,?\\s+)?(?:\\b(?:where|if)\\s+(?:feasible|possible|practicable),?\\s+)?\\b(?:with(?:in)?|no\\s+later\\s+than|not\\s+later\\s+than)\\s+(?P<deadline>\\d+\\s+\\w+)(?:\\s+(?:after|following|from|of)\\b[^,;.]*)?",
+    "relative_clause_de": "(?:\\bund,?\\s+)?(?:\\b(?:wo|wenn|falls|soweit)\\s+m(?:ö|o)glich,?\\s+)?\\b(?:innerhalb\\s+von|binnen|sp(?:ä|a)testens)\\s+(?P<deadline>\\d+\\s+\\w+)(?:\\s+(?:nach|ab)\\s+\\w+)?",
     "relative": "\\b(?:with(?:in)?|no later than|not later than|innerhalb\\s+von|binnen|sp(?:ä|a)testens)\\s+(?P<deadline>\\d+\\s+\\w+)",
     "absolute": "\\b(?:by|by the end of|not later than|until|bis(?:\\s+zum)?)\\s+(?P<deadline>\\d{4}-\\d{2}-\\d{2}|\\d{1,2}(?:\\s+|\\.)\\w+(?:\\s+\\d{4})?)"
   },
+  "validity_cues": [
+    { "effect": "void", "pattern": "\\b(?:is|are|shall\\s+be)\\s+(?:null\\s+and\\s+)?(?:void|invalid|ineffective|unenforceable|of\\s+no\\s+(?:legal\\s+)?effect)\\b|\\b(?:ist|sind)\\s+(?:unwirksam|nichtig)\\b|\\bunwirksam\\s+(?:ist|sind)\\b" },
+    { "effect": "preserved", "pattern": "\\bremains?\\s+(?:valid|effective|binding|in\\s+force)\\b|\\bbleib(?:t|en)\\b[^,;.]{0,60}?\\bwirksam\\b" },
+    { "effect": "substitution", "pattern": "\\b(?:is|are)\\s+replaced\\s+by\\b|\\bstatutory\\s+provisions?\\s+(?:shall\\s+)?appl(?:y|ies)\\b|\\ban\\s+die\\s+Stelle\\b[^,;.]{0,80}?\\btret(?:en|e|t)\\b|\\btret(?:en|e|t)\\b[^,;.]{0,80}?\\ban\\s+die\\s+Stelle\\b" }
+  ],
+  "validity_rules": [
+    { "effect": "void", "incident": "disability" },
+    { "effect": "preserved", "incident": "" },
+    { "effect": "substitution", "incident": "" }
+  ],
   "cross_reference_cues": {
     "instrument": "\\b(?:in accordance with|pursuant to|as (?:set out|referred to|provided|specified) in|under|subject to|gem(?:ä|a)(?:ß|ss)|nach|im Sinne (?:des|der))\\s+(?P<ref>(?:Article|Art\\.?|Section|Sec\\.?|§|Regulation|Directive|Annex|Artikel|Absatz|Abs\\.?|Anhang)\\s*[\\w.()/\\-]+)"
   },
