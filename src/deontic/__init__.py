@@ -61,6 +61,10 @@ from .artifacts import (
 )
 from .conformance import Vector, ConformanceReport, iter_vectors, run_conformance
 from .protocol import DeonticImplementation
+# graded — 5-valued aḥkām scale + supererogation (O142), exposed as a SUBMODULE
+# (deontic.graded.*) so its generic names (project/gloss/name/compare) don't
+# shadow the core triad's grammar.project / operators.gloss / operators.name.
+from . import graded
 
 __all__ = [
     "__version__",
@@ -94,4 +98,6 @@ __all__ = [
     "Vector", "ConformanceReport", "iter_vectors", "run_conformance",
     # protocol
     "DeonticImplementation",
+    # graded — 5-valued aḥkām / supererogation extension (O142); use deontic.graded.*
+    "graded",
 ]
