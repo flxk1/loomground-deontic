@@ -51,6 +51,11 @@ from .algebra import (
     law_opposite_involution, law_dual_of_prohibition,
     law_optional_reduces_to_two_permissions,
 )
+from .intervention import (
+    INTERVENTION_KINDS, INTERVENTION_POSITIONS,
+    classify_intervention_kind, is_intervention,
+    intervention_position, intervention_exposure,
+)
 from .contract import (
     SOLVER_DIMENSIONS, dimension_affinity, CompositionPacket, packet,
     conflict_candidates, incident_vocabulary, contract_surface, CONTRACT_VERSION,
@@ -82,6 +87,10 @@ __all__ = [
     "law_square_contraries", "law_correlativity_involution",
     "law_opposite_involution", "law_dual_of_prohibition",
     "law_optional_reduces_to_two_permissions",
+    # intervention profile (correctability over the existing incidents)
+    "INTERVENTION_KINDS", "INTERVENTION_POSITIONS",
+    "classify_intervention_kind", "is_intervention",
+    "intervention_position", "intervention_exposure",
     # contract (composition surface)
     "SOLVER_DIMENSIONS", "dimension_affinity", "CompositionPacket", "packet",
     "conflict_candidates", "incident_vocabulary", "contract_surface",
