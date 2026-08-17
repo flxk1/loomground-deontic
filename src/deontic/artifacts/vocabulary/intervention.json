@@ -1,0 +1,23 @@
+{
+  "describes": "The intervention profile — a reading of the existing Hohfeldian incidents for the acts by which one party corrects another. It adds no incident, no operator and no correlative pair; it names a verb family and records what the four positions already in the vocabulary mean when the act is an intervention.",
+  "why": "Whether one party can still pause, correct, constrain or terminate another is normally posed as a question about disposition. Posed as a question about position it is already answerable in this vocabulary: the power/liability and immunity/disability pairs are the formal statement of correctability, and an addressee protected against intervention is exactly an immunity whose correlative is the intervener's disability.",
+  "kinds": [
+    { "name": "pause",     "gloss": "suspend the addressee's activity without ending it" },
+    { "name": "correct",   "gloss": "alter or override the addressee's act or its result" },
+    { "name": "constrain", "gloss": "narrow what the addressee may thereafter do" },
+    { "name": "terminate", "gloss": "end the addressee's activity or standing altogether" }
+  ],
+  "positions": {
+    "describes": "The four incidents that can be borne over an intervention act, read in the intervening direction. These are the SAME positions as vocabulary/incidents.json — listed here only with their intervention reading.",
+    "power": "the intervener can pause, correct, constrain or terminate the addressee",
+    "liability": "the addressee is susceptible to that change — the correlative of the intervener's power",
+    "immunity": "the addressee cannot be so changed; intervention is unavailable against it",
+    "disability": "the intervener cannot intervene — the correlative of the addressee's immunity"
+  },
+  "flags": {
+    "describes": "Diagnostics reported over a norm-set. Flags are structural observations, never verdicts, and are resolved by a reasoner or a person, never here.",
+    "intervention-immunity": "some addressee holds an immunity over an intervention act, so the correlative intervener holds a disability",
+    "intervention-unheld": "the set names intervention acts but confers no power over any of them"
+  },
+  "boundary": "This profile classifies stated positions. It says nothing about whether any party will in fact comply with an intervention, and a set carrying no flag is not thereby well-behaved — only un-flagged. The verb family is general: an employer revoking a signing authority and a principal recalling a mandate are the same structure."
+}
