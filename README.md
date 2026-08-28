@@ -33,6 +33,15 @@ The authoritative language artifacts ship as package data under
 (`schema/statement.schema.json`), the modal + incident vocabulary
 (`vocabulary/`), the language card, and the conformance vectors.
 
+## Install
+
+```bash
+pip install "loomground-deontic @ git+https://github.com/flxk1/loomground-deontic"
+```
+
+Zero runtime dependencies; Python 3.10+. Not yet on PyPI — install from the public
+repository by URL, or pin a tag (e.g. `@loomground-deontic-v0.1.3`) for reproducibility.
+
 ## Example
 
 ```python

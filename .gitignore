@@ -7,3 +7,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
+
+# ctrl orchestration scratch ledger — never part of the package
+work/
