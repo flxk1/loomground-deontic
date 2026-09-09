@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 flxk1
+include CHANGELOG.md
+include NOTICE
+include README.md
+include RELEASING.md
+include REUSE.toml
+include SECURITY.md
+include package.json
+include pyproject.toml
+include release-please-config.json
+include .release-please-manifest.json
+include .claude-plugin/plugin.json
+recursive-include .github *.yml
+recursive-include LICENSES *
+recursive-include docs *.md
+recursive-include examples *.py
+recursive-include skills *
+recursive-include tools *.py
+global-exclude .DS_Store
+global-exclude *.py[cod]
+global-exclude __pycache__
