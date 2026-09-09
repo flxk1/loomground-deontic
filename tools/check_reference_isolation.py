@@ -2,13 +2,13 @@
 # Copyright 2026 flxk1
 """Prove the reference implementation is genuinely third-party.
 
-`reference/` exists to prove the deontic contract is implementable by a party
+`examples/` exists to prove the deontic contract is implementable by a party
 with no access to this project's product code — only the published grammar,
 schema, and conformance vectors. That is a checked property, not a claim, only if
 something forbids the reference from quietly importing the product it is supposed
 to be independent of.
 
-This gate AST-parses every .py file under `reference/` and fails if any imports
+This gate AST-parses every .py file under `examples/` and fails if any imports
 `deontic`, `loomground_solver`, `loomground_governance`, or any submodule — by
 `import x`, `import x.y`, or `from x import y`.
 
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
-REFERENCE = ROOT / "reference"
+REFERENCE = ROOT / "examples"
 
 BANNED_ROOTS = {"deontic", "loomground_solver", "loomground_governance", "loomground_norm"}
 
