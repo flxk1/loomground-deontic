@@ -8,7 +8,7 @@ statement vector must parse, validate, and project to its `expected.json`; a
 negative vector must be rejected at its declared stage. Exits non-zero on any
 mismatch — this is the third-party implementability proof for the DoD.
 
-Run standalone: python3 reference/conformance.py
+Run standalone: python3 examples/conformance.py
 """
 from __future__ import annotations
 

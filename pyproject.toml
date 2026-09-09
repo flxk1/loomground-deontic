@@ -18,6 +18,11 @@ authors = [{ name = "Loomground Contributors" }]
 dependencies = []
 dynamic = ["version"]
 
+# Development and CI tooling only; the package itself declares no runtime
+# dependencies.
+[project.optional-dependencies]
+dev = ["pytest==9.1.1"]
+
 [project.urls]
 Homepage = "https://github.com/flxk1/loomground-deontic"
 Repository = "https://github.com/flxk1/loomground-deontic"
