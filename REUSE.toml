@@ -40,7 +40,8 @@ SPDX-FileCopyrightText = "2026 flxk1"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = [".gitignore", "NOTICE"]
+path = [  "MANIFEST.in",
+".gitignore", "NOTICE"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 flxk1"
 SPDX-License-Identifier = "Apache-2.0"
