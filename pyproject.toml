@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "loomground-deontic"
-description = "General deontic language and algebra: the modal (O/P/F) and Hohfeld incident vocabulary, a deontic-statement grammar, the formula representation, and the composition algebra solver combines with governance and other languages. Pure language, no inference."
+description = "Deontic language and algebra: O/P/F operators, the eight Hohfeld incidents, a statement grammar, and the composition surface a reasoner consumes."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -14,7 +14,7 @@ license-files = ["LICENSES/Apache-2.0.txt", "LICENSES/CC-BY-4.0.txt"]
 authors = [{ name = "Loomground Contributors" }]
 # Foundational, like loomground-governance: no runtime dependencies. Deontic is
 # a language pack consumed *by* solver — it never imports solver, the rule
-# extractor, or any reasoning layer. See the README ("What's here").
+# extractor, or any reasoning layer. See docs/modules.md.
 dependencies = []
 dynamic = ["version"]
 

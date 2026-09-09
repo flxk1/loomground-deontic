@@ -2,47 +2,17 @@
 <!-- Copyright 2026 flxk1 -->
 # loomground-deontic
 
-The general **deontic language and algebra** for the Loomground family: the
-formal vocabulary of norms, a grammar for a deontic statement, the formula
-representation, and the **algebra** over those terms that lets a reasoner combine
-deontic content with governance and any other language.
-
-It is a **parallel nD language pack, structured like `loomground-governance`** —
-not a reasoning library. Governance is the nD language for AI-oversight; deontic
-is the nD language for general norms. Both are consumed *by*
-[`loomground-solver`](https://github.com/flxk1/loomground-solver), which composes
-them. Deontic is foundational: it imports no solver, no rule extractor, and no
-reasoning layer — it defines the language, and a reasoner does the inference.
-
-## What's here
-
-| Module | Role |
-|---|---|
-| `deontic.operators` | The three SDL modals `O`/`P`/`F` (one primitive `O`; `F≡O¬`, `P≡¬O¬`) and their relations (duality, square of opposition, clash). "Right" is not a modality — it lives in the incident layer. |
-| `deontic.incidents` | The eight Hohfeld positions in four correlative pairs, the correlative/opposite relations, and the deterministic classifiers. |
-| `deontic.formula` | The formula carrier, canonical rendering, groundedness predicate, and candidate-conflict flagging. |
-| `deontic.grammar` | `parse` / `validate` / `project` over the canonical statement — also the reference implementation of the conformance protocol. |
-| `deontic.algebra` | Carrier, operators (duality, contrary-to-duty, bilateral liberty / the *optional*), the laws as checkable predicates, the composition surface, and `system_health` (the structural utopia/dystopia diagnostic). |
-| `deontic.artifacts` | Data-only loader for the packaged language artifacts. |
-| `deontic.conformance` | Vectors and the acceptance runner. |
-| `deontic.protocol` | The neutral protocol any runtime implements. |
-
-The authoritative language artifacts ship as package data under
-`src/deontic/artifacts/`: a compact LLM-facing guide (`llms.txt`, via
-`deontic.llms()`), the grammar (`grammar/deontic.ebnf`), the JSON schema
-(`schema/statement.schema.json`), the modal + incident vocabulary
-(`vocabulary/`), the language card, and the conformance vectors.
+Deontic language and algebra: O/P/F operators, the eight Hohfeld incidents, a statement grammar, and the composition surface a reasoner consumes.
 
 ## Install
 
-```bash
-pip install "loomground-deontic @ git+https://github.com/flxk1/loomground-deontic"
+```
+pip install "loomground-deontic @ git+https://github.com/flxk1/loomground-deontic@loomground-deontic-v0.1.3"
 ```
 
-Zero runtime dependencies; Python 3.10+. Not yet on PyPI — install from the public
-repository by URL, or pin a tag (e.g. `@loomground-deontic-v0.1.3`) for reproducibility.
+Import name `deontic`. Dependents pin `loomground-deontic>=0.1,<0.2`.
 
-## Example
+## Usage
 
 ```python
 import deontic
@@ -50,45 +20,42 @@ import deontic
 f = deontic.parse("if [processing is carried out] then O(controller : implement TOMs) unless [Art.11]")
 f.operator            # "O"
 f.dual()              # "¬P(¬ implement TOMs)"
-deontic.project(f)    # structured statement (statement.schema.json shape)
+deontic.project(f)    # {"operator": "O", "bearer": "controller", "action": "implement TOMs", ...}
 
-# The algebra combines deontic content, flagging candidate conflicts, never resolving them.
 a = deontic.formula_from_fields("obligation", "processor", "notify")
 b = deontic.formula_from_fields("prohibition", "processor", "notify")
-deontic.compose([a, b]).conflicts   # one flagged O/F clash
+deontic.compose([a, b]).conflicts   # one O/F clash, "candidate-escalate"
 ```
 
-## Conformance
+## Contracts
 
-```
-python -m pytest
-```
+| Surface | Definition |
+|---|---|
+| Statement grammar | `src/deontic/artifacts/grammar/deontic.ebnf`; `deontic.parse` / `validate` / `project` |
+| Statement shape | `artifacts/schema/statement.schema.json`: operator, bearer, action, condition, exception, negated, incident, counterparty |
+| Vocabulary | `artifacts/vocabulary/`: O, P, F; claim, duty, privilege, no-right, power, liability, immunity, disability |
+| Composition contract | `deontic.contract`, `CONTRACT_VERSION` 0.1.0: dimension affinity, `incident_vocabulary()`, `conflict_candidates()` |
+| Protocol | `deontic.DeonticImplementation`; `deontic.run_conformance(impl)` over 8 vectors |
+| Agent entry | `artifacts/llms.txt` (`deontic.llms()`), `artifacts/deontic-card.json`; `skills/deontic/` |
+| Reference | `examples/deontic_reference.py` (stdlib); `examples/conformance.py` |
 
-`deontic.run_conformance(impl)` runs every published vector against any object
-exposing `parse`/`validate`/`project`. Passing the vectors is the acceptance gate
-for a consumer.
+Module inventory: `docs/modules.md`.
 
-## Status and open decisions
+## Family
 
-`0.1.3`, draft. Two boundary decisions are set with foundational defaults, open
-to revision before `1.0`:
+Deontic language and algebra; language separate from inference. The package contains no inference; the algebra flags candidate conflicts for the consuming reasoner.
 
-- **Distribution/import name.** `loomground-deontic` (dist) with `deontic`
-  (import). Change before `1.0` if a bare core-language name is wanted.
-- **Grammar substrate.** Deontic **stands alone** — `dependencies = []`, no
-  dependency on the core Loomground language from governance. Revisit if the nD
-  grammar substrate should be shared rather than restated.
+- Consumes: nothing at runtime (`dependencies = []`).
+- Consumed by: `loomground-solver`, `loomground-versum`, `loomground-ingest`, `loomground-norm`.
+- Siblings: `loomground-governance`, `loomground-epistemic`, over `loomground-factual`.
+- Pipeline: `source → loomground-ingest → loomground-versum → loomground-solver → applied or diagnostic planes`; the norm vocabulary ingest lowers into, solver composes.
 
-The composition contract a reasoner consumes is defined in `deontic.contract`
-(and summarised by `deontic.contract_surface()`), coupling to solver by string
-agreement only. The exact `SolverProjection` mapping is co-designed with solver
-before the surface is frozen.
+Open decisions: `docs/open-decisions.md`, `docs/decisions/`.
 
-## Licensing
+## Status
 
-The language-definition prose in this README and
-`src/deontic/artifacts/llms.txt` is licensed under CC-BY-4.0. The Python
-reference implementation, grammar, schemas, vocabulary data, `.deo` tooling,
-conformance vectors, examples, and repository tooling are licensed under
-Apache-2.0. See `LICENSES/CC-BY-4.0.txt`,
-`LICENSES/Apache-2.0.txt`, and `REUSE.toml` for the per-file boundary.
+0.1.3 (draft) · contract 0.1.0 · 93 tests · 8 conformance vectors · version axes gated (`tools/check_versions.py`) · Python ≥ 3.10 (CI 3.10, 3.14).
+
+## License
+
+Apache-2.0 — `LICENSES/Apache-2.0.txt`. CC-BY-4.0 — `LICENSES/CC-BY-4.0.txt` (this README, `artifacts/llms.txt`). Boundary: `REUSE.toml`.
