@@ -33,15 +33,15 @@ ROOT = Path(__file__).resolve().parent.parent
 ART = ROOT / "src" / "deontic" / "artifacts"
 REQUIRED_ROOT_FILES = (
     "README.md", "CHANGELOG.md", "RELEASING.md", "SECURITY.md", "NOTICE",
-    "REUSE.toml", "MANIFEST.in", "pyproject.toml",
+    "REUSE.toml", "pyproject.toml",
     "release-please-config.json", ".release-please-manifest.json",
     "docs/RELEASE-DoD.md",
 )
 REQUIRED_SDIST_FILES = REQUIRED_ROOT_FILES + (
     ".github/workflows/ci.yml",
     ".github/workflows/release-please.yml",
-    "reference/deontic_reference.py",
-    "reference/conformance.py",
+    "examples/deontic_reference.py",
+    "examples/conformance.py",
     "skills/deontic/SKILL.md",
     "skills/deontic/deontic_engine.py",
     "tools/release_gate.py",
@@ -200,7 +200,7 @@ def main() -> int:
         ("companion skill coherence", [sys.executable, "tools/check_companion.py"]),
         ("vector schema validity", [sys.executable, "tools/check_vectors.py"]),
         ("reference import isolation", [sys.executable, "tools/check_reference_isolation.py"]),
-        ("independent reference conformance", [sys.executable, "reference/conformance.py"]),
+        ("independent reference conformance", [sys.executable, "examples/conformance.py"]),
         ("REUSE licensing compliance", ["reuse", "--no-multiprocessing", "lint"]),
     )
     for label, command in commands:

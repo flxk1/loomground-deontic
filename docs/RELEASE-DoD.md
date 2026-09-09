@@ -37,7 +37,7 @@ publishing workflow runs it again and publishes the same verified files from
 | Product behavior and algebraic laws | `python3 -m pytest` |
 | Skill engine parity, including signed conflicts | `tools/check_companion.py` |
 | Published vector/schema agreement | `tools/check_vectors.py` |
-| Third-party implementability | `tools/check_reference_isolation.py` and `reference/conformance.py` |
+| Third-party implementability | `tools/check_reference_isolation.py` and `examples/conformance.py` |
 | SPDX/REUSE compliance | `reuse lint` |
 | Wheel/sdist contents and clean installation | `tools/release_gate.py` distribution checks |
 
