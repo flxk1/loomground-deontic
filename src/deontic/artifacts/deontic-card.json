@@ -1,6 +1,6 @@
 {
   "language": "Deontic",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "status": "draft",
   "summary": "The general deontic language and algebra: the three modal operators (O/P/F), the eight Hohfeldian incidents, a grammar for a deontic statement, the formula representation, and the composition algebra a reasoner combines with governance and other languages. Pure language, no inference.",
   "operators": [
