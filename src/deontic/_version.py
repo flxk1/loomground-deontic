@@ -7,4 +7,4 @@ one artifact, one label, nothing to drift.
 Internal by design: a version constant, not a surface.
 """
 
-__version__ = "0.2.0"  # x-release-please-version
+__version__ = "0.2.1"  # x-release-please-version
