@@ -12,5 +12,11 @@
     "obligation",
     "hohfeld",
     "legal"
-  ]
+  ],
+  "mcpServers": {
+    "loomground": {
+      "command": "loomground-mcp",
+      "args": ["serve", "--transport", "stdio"]
+    }
+  }
 }
