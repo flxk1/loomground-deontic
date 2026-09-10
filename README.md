@@ -4,6 +4,10 @@
 
 Deontic language and algebra: O/P/F operators, the eight Hohfeld incidents, a statement grammar, and the composition surface a reasoner consumes.
 
+## Problem
+
+"Must", "may", "must not" stay prose; conflicts between duties go unnoticed. Parses obligations, permissions, prohibitions into formulas and flags conflicting pairs.
+
 ## Install
 
 ```
@@ -18,14 +22,34 @@ Import name `deontic`. Dependents pin `loomground-deontic>=0.1,<0.2`.
 import deontic
 
 f = deontic.parse("if [processing is carried out] then O(controller : implement TOMs) unless [Art.11]")
-f.operator            # "O"
-f.dual()              # "¬P(¬ implement TOMs)"
-deontic.project(f)    # {"operator": "O", "bearer": "controller", "action": "implement TOMs", ...}
+deontic.project(f)    # {"operator": "O", "bearer": "controller", ...}
 
 a = deontic.formula_from_fields("obligation", "processor", "notify")
 b = deontic.formula_from_fields("prohibition", "processor", "notify")
-deontic.compose([a, b]).conflicts   # one O/F clash, "candidate-escalate"
+deontic.compose([a, b]).conflicts   # one O/F clash
 ```
+
+## Example
+
+```
+in : deontic.parse("O(operator : delete personal data)")
+out: DeonticFormula(operator='O', bearer='operator', action='delete personal data', condition='', exception='', negated=False, incident='', counterparty='', deadline='', cross_references=[], sanction='', language='en', raw_sentence='', confidence=0.0)
+```
+
+## Language
+
+One norm as an operator over a bearer and an action, with an applicability condition and a defeasibility exception. Forms: `O` obligation · `P` permission · `F` prohibition · `if [c] then …` · `… unless [e]` · `¬action`; F ≡ O¬, P ≡ ¬O¬.
+
+```
+O(operator : delete personal data)                           must delete
+F(operator : transfer personal data outside the EU)          must not transfer
+P(operator : retain invoices)                                may retain
+if [contract ended] then O(operator : delete personal data)  applies once the contract has ended
+O(operator : delete personal data) unless [legal hold]       defeated by a legal hold
+O(operator : ¬disclose)                                      negated action
+```
+
+`conflict_candidates` flags an O and an F over the same bearer and action. Full card: `docs/language-card.md`.
 
 ## Contracts
 
@@ -36,8 +60,7 @@ deontic.compose([a, b]).conflicts   # one O/F clash, "candidate-escalate"
 | Vocabulary | `artifacts/vocabulary/`: O, P, F; claim, duty, privilege, no-right, power, liability, immunity, disability |
 | Composition contract | `deontic.contract`, `CONTRACT_VERSION` 0.1.0: dimension affinity, `incident_vocabulary()`, `conflict_candidates()` |
 | Protocol | `deontic.DeonticImplementation`; `deontic.run_conformance(impl)` over 8 vectors |
-| Agent entry | `artifacts/llms.txt` (`deontic.llms()`), `artifacts/deontic-card.json`; `skills/deontic/` |
-| Reference | `examples/deontic_reference.py` (stdlib); `examples/conformance.py` |
+| Agent entry, reference | `artifacts/llms.txt`, `artifacts/deontic-card.json`, `skills/deontic/`; `examples/deontic_reference.py`, `examples/conformance.py` |
 
 Module inventory: `docs/modules.md`.
 
