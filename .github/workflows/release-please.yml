@@ -21,6 +21,9 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # A PAT lets release-please's PRs and tags trigger downstream CI; the
+          # default GITHUB_TOKEN cannot. Falls back to it until the secret is set.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
 
   publish:
     needs: release
