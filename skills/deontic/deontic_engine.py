@@ -25,6 +25,21 @@ GLOSS = {"O": "obligatory", "P": "permitted", "F": "forbidden"}
 # counterparty's O and is built with claim_right(), not this map.
 MODAL_TO_OP = {"obligation": "O", "permission": "P", "prohibition": "F", "right": "P"}
 
+# A negated modal ("must not", "shall not", "may not", "cannot", "is not permitted
+# to") denotes a prohibition, not a duty: mapping it to the O fallback would invert
+# the norm's force. Recognise it as F. "need not" (a release from duty) and bare
+# "will/would not" are deliberately excluded — they fail closed instead of F.
+_NEGATED_MODAL = re.compile(
+    r"\b(?:"
+    r"cannot"
+    r"|(?:must|shall|may)\s+(?:not|never)"
+    r"|can\s+not"
+    r"|not\s+(?:be\s+)?(?:permitt\w*|allow\w*|entitl\w*|authoris\w*|authoriz\w*|"
+    r"free|at\s+liberty)"
+    r"|no\s+(?:right|permission|liberty)\b"
+    r"|prohibit\w*|forbid\w*|forbidden|barred|proscrib\w*|preclud\w*|enjoin\w*"
+    r")", re.I)
+
 INCIDENTS = ("claim", "duty", "privilege", "no-right",
              "power", "liability", "immunity", "disability")
 _CORRELATIVE = {"claim": "duty", "duty": "claim", "privilege": "no-right",
@@ -81,8 +96,19 @@ def _formula(operator, bearer, action, *, condition="", exception="",
 
 def formula_from_fields(modal, subject, action, *, condition="", exception="",
                         raw_sentence="", counterparty="") -> dict[str, Any]:
-    """Build a formula from a norm's primitive fields, classifying its incident."""
-    op = MODAL_TO_OP.get(modal, "O")  # uncatalogued modal → O (safe legal default)
+    """Build a formula from a norm's primitive fields, classifying its incident.
+
+    A negated modal lowers to F; an unrecognised, non-negated modal fails closed
+    (raises) rather than silently becoming an obligation.
+    """
+    op = MODAL_TO_OP.get(modal)
+    if op is None:
+        if _NEGATED_MODAL.search(modal or ""):
+            op = "F"
+        else:
+            raise ValueError(
+                f"unrecognised deontic modal: {modal!r}; expected one of "
+                f"{sorted(MODAL_TO_OP)} or a negated modal (e.g. 'must not')")
     incident = classify_incident(modal, action or "", raw_sentence or "")
     return _formula(op, subject or "(unspecified)", action or "(unspecified)",
                     condition=condition, exception=exception,

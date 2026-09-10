@@ -37,10 +37,13 @@ def test_formula_from_fields_maps_modal():
     assert f.dual() == "O(¬ engage a subprocessor)"
 
 
-def test_uncatalogued_modal_falls_back_to_obligation_and_drops_confidence():
-    f = deontic.formula_from_fields("recommendation", "x", "do y", confidence=0.5)
-    assert f.operator == operators.OP_OBLIGATION
-    assert f.confidence == 0.4
+def test_uncatalogued_modal_fails_closed():
+    # An unrecognised, non-negated modal must NOT silently become an obligation:
+    # reading an unknown modal as a duty can invert the norm's force. It now fails
+    # closed. (A negated modal is recognised as F — see test_negated_modal.py.)
+    import pytest
+    with pytest.raises(ValueError, match="unrecognised deontic modal"):
+        deontic.formula_from_fields("recommendation", "x", "do y", confidence=0.5)
 
 
 def test_is_grounded_requires_span_and_concrete_slots():
