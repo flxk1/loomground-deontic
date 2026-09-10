@@ -25,6 +25,13 @@ GLOSS = {"O": "obligatory", "P": "permitted", "F": "forbidden"}
 # counterparty's O and is built with claim_right(), not this map.
 MODAL_TO_OP = {"obligation": "O", "permission": "P", "prohibition": "F", "right": "P"}
 
+# classify_incident keys on the canonical surface modal, so a formula's incident
+# must be read from its resolved operator, not the raw input modal. A negated
+# phrase ("must not") resolves to F but is not a modal classify_incident knows;
+# passing it through left the prohibition's incident unclassified. Map the
+# operator back to the modal the classifier expects.
+_OP_TO_MODAL = {"O": "obligation", "P": "permission", "F": "prohibition"}
+
 # A negated modal ("must not", "shall not", "may not", "cannot", "is not permitted
 # to") denotes a prohibition, not a duty: mapping it to the O fallback would invert
 # the norm's force. Recognise it as F. "need not" (a release from duty) and bare
@@ -109,7 +116,7 @@ def formula_from_fields(modal, subject, action, *, condition="", exception="",
             raise ValueError(
                 f"unrecognised deontic modal: {modal!r}; expected one of "
                 f"{sorted(MODAL_TO_OP)} or a negated modal (e.g. 'must not')")
-    incident = classify_incident(modal, action or "", raw_sentence or "")
+    incident = classify_incident(_OP_TO_MODAL.get(op, modal), action or "", raw_sentence or "")
     return _formula(op, subject or "(unspecified)", action or "(unspecified)",
                     condition=condition, exception=exception,
                     incident=incident, counterparty=counterparty)
