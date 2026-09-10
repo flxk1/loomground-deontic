@@ -28,7 +28,7 @@ SPDX-License-Identifier = "CC-BY-4.0"
 # Normative language-definition prose. README.md also carries this identifier
 # inline; the explicit mapping makes the prose boundary reviewable in one place.
 [[annotations]]
-path = "README.md"
+path = ["README.md", "llms.txt"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 flxk1"
 SPDX-License-Identifier = "CC-BY-4.0"
