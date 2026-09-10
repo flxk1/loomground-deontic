@@ -1,6 +1,7 @@
 ---
 name: deontic
 description: 'Transcribe a natural-language norm into a verified deontic formula. Use when the user wants to formalise an obligation, permission, or prohibition as a typed statement O/P/F(bearer : action); classify the Hohfeldian incident (claim, duty, privilege, no-right, power, liability, immunity, disability); decide whether a "right" is a claim or a liberty; validate a deontic statement; or flag candidate normative conflicts across a set of norms. The procedure transcribes each norm, classifies its incident, validates it against the schema with a bundled engine, flags conflicts, and reports what is a deontic statement versus what belongs to the reasoning layer. Triggers on "formalise this obligation", "write this as a deontic statement", "O/P/F", "is this a claim or a liberty", "validate this deontic formula", "are these norms in conflict".'
+allowed-tools: deontic_parse deontic_conflicts
 ---
 
 # Deontic skill — transcribe, classify, validate
@@ -38,8 +39,13 @@ A "right" is ambiguous (this is Hohfeld's point). Decide:
   mistake — it puts the modality on the wrong party.
 
 ## Step 3 — Transcribe and classify (the engine does the work)
-Use the bundled engine so the incident classification and structure are
-deterministic:
+Primary path: call `deontic_parse` with
+`{"statement": "The processor shall not engage a subprocessor."}` — it returns
+the formula fields (modality, bearer, action, condition, exception, incident,
+negated) and the `render` round-trip.
+
+Shell fallback — the bundled engine, so the incident classification and
+structure are deterministic:
 ```
 import deontic_engine as eng
 f = eng.formula_from_fields("prohibition", "processor", "engage a subprocessor",
@@ -53,7 +59,10 @@ Carry negation in the `negated` sense (a permission-to-refrain), never as the
 word "not" inside the action text, or the algebra cannot pair or clash it.
 
 ## Step 4 — Validate every statement
-Run the checker on each rendered statement:
+Primary path: a rendered statement `deontic_parse` returns fields for is
+well-formed; one it cannot parse comes back as an `ok: false` envelope naming
+the parse/validate reason. Shell fallback — run the checker on each rendered
+statement:
 ```
 python3 validate.py "F(processor : engage a subprocessor) unless [the controller authorises it]"
 # WELL-FORMED  + the structured projection, or  REJECTED (parse|validate): reason
@@ -61,7 +70,10 @@ python3 validate.py "F(processor : engage a subprocessor) unless [the controller
 A statement that will not validate is not a deontic formula — fix the slots.
 
 ## Step 5 — Flag conflicts, do not resolve them
-Across the whole set, run `eng.detect_conflicts([...])`. A candidate conflict is
+Across the whole set, call `deontic_conflicts` with
+`{"statements": ["O(a : x)", "F(a : x)", ...]}` — each statement is parsed and
+the candidate conflicts returned (shell fallback:
+`eng.detect_conflicts([...])`). A candidate conflict is
 the same bearer and unsigned action bound to incompatible truth values. Polarity
 matters: `O(a)` clashes with `O(¬a)`, while `O(¬a)` and `F(a)` agree. The skill
 **flags** it (`resolution: candidate-escalate`); it never picks a winner — a
