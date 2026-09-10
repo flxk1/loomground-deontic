@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "describes": "Conformance vectors defining a conforming deontic-language implementation. Each statement vector parses, validates, and projects to expected.json; each negative vector is rejected at the declared stage.",
   "kinds": {
     "statement": "input.deo + expected.json (structured projection)",
