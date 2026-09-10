@@ -24,11 +24,12 @@ we do not derive. This module imports only the standard library.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, asdict, field
 from typing import Any
 
 from .operators import (
-    OP_OBLIGATION, VALID_OPERATORS, gloss, dual_of,
+    OP_OBLIGATION, OP_PROHIBITION, VALID_OPERATORS, gloss, dual_of,
 )
 
 __all__ = [
@@ -39,14 +40,35 @@ __all__ = [
 # Surface modal classes → deontic modality. A surface "right" reduces to a P
 # (liberty) for the holder; a claim-right (the correlative of someone's duty) is
 # the counterparty's O and is carried by the incident/counterparty, not by a
-# fourth operator. Anything uncatalogued falls back to O (the safe legal default:
-# read an ambiguous norm as a duty and surface it for review).
+# fourth operator.
 MODAL_TO_OP: dict[str, str] = {
     "obligation": OP_OBLIGATION,
     "permission": "P",
     "prohibition": "F",
     "right": "P",
 }
+
+# A negated deontic modal denotes a prohibition, never a duty. Keying MODAL_TO_OP
+# on the canonical force names left a negated surface phrase ("must not", "shall
+# not", "may not", "cannot", "is not permitted to") uncatalogued, and an
+# uncatalogued modal used to fall back to O — transcribing a prohibition as an
+# obligation to do the very act it forbids. That inversion is a governance-safety
+# defect, so a recognised negated modal lowers to F here. Deliberately excluded:
+# "need not"/"not required to" (a release from duty, i.e. a permission to omit —
+# not a prohibition) and bare "will/would not" (not clearly deontic); those stay
+# uncatalogued and fail closed rather than being forced to F.
+_NEGATED_MODAL = re.compile(
+    r"\b(?:"
+    r"cannot"
+    r"|(?:must|shall|may)\s+(?:not|never)"
+    r"|can\s+not"
+    r"|not\s+(?:be\s+)?(?:permitt\w*|allow\w*|entitl\w*|authoris\w*|authoriz\w*|"
+    r"free|at\s+liberty)"
+    r"|no\s+(?:right|permission|liberty)\b"
+    r"|prohibit\w*|forbid\w*|forbidden|barred|proscrib\w*|preclud\w*|enjoin\w*"
+    r")",
+    re.I,
+)
 
 _UNSPECIFIED = "(unspecified)"
 
@@ -159,18 +181,27 @@ def formula_from_fields(
 ) -> DeonticFormula:
     """Build a formula from a norm's primitive fields.
 
-    ``modal`` is a surface modal class (obligation/permission/prohibition/right);
-    an uncatalogued class maps to O and drops confidence by 0.1 (the operator is
-    then a fallback, not a read). Empty subject/action become ``"(unspecified)"``
-    so :func:`is_grounded` can tell a placeholder from a real bearer.
+    ``modal`` is a surface modal class (obligation/permission/prohibition/right).
+    A negated modal phrase ("must not", "shall not", "may not", "cannot", "is not
+    permitted to") is recognised as a **prohibition** and lowers to F. An
+    unrecognised, non-negated modal **fails closed** — it raises ``ValueError``
+    rather than silently asserting an obligation, because reading an unknown modal
+    as a duty (the old fallback) can invert the norm's force. Empty subject/action
+    become ``"(unspecified)"`` so :func:`is_grounded` can tell a placeholder from
+    a real bearer.
 
     ``deadline``/``cross_references``/``sanction`` are optional, additive carry
     fields (opaque text); omit them and the formula is identical to before.
     """
     op = MODAL_TO_OP.get(modal)
     if op is None:
-        op = OP_OBLIGATION
-        confidence = max(0.0, confidence - 0.1)
+        if _NEGATED_MODAL.search(modal or ""):
+            op = OP_PROHIBITION
+        else:
+            raise ValueError(
+                f"unrecognised deontic modal: {modal!r}; expected one of "
+                f"{sorted(MODAL_TO_OP)} or a negated modal (e.g. 'must not')"
+            )
     return DeonticFormula(
         operator=op,
         bearer=subject or _UNSPECIFIED,
