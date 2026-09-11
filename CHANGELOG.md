@@ -2,6 +2,13 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
+## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)
+
+
+### Documentation
+
+* llms.txt generated from README ([9f3bb07](https://github.com/flxk1/loomground-deontic/commit/9f3bb0785d145b44cea50bf0514094aeb333205a))
+
 ## [0.2.0](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.1.3...loomground-deontic-v0.2.0) (2026-09-10)
 
 
