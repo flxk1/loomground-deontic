@@ -60,7 +60,7 @@ and publishes them using
 [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) — an OIDC
 exchange (`id-token: write`) instead of a long-lived API token stored in the
 repository. Publication runs only inside the protected `pypi` GitHub environment and
-must pass the RVND governance lane before anything reaches PyPI.
+must pass the configured governance lane before anything reaches PyPI.
 
 ## Local verification before tagging
 
