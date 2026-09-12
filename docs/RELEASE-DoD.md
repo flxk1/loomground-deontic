@@ -100,7 +100,7 @@ machine-verified.
 
 - [ ] Dependabot (or equivalent) is configured for both the CI-action ecosystem and
       the language's package ecosystem, on a low-noise (e.g. weekly, grouped) schedule.
-- [ ] The RVND governance lane is the declared automated release owner for the
+- [ ] The configured governance lane is the declared automated release owner for the
       repository and applies stricter policy to normative/contract-bearing paths,
       package metadata, and release automation. No human-review dependency is implied.
 - [ ] A `SECURITY.md` states the supported-versions policy and how to report a
