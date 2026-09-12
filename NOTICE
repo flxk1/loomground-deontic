@@ -11,12 +11,7 @@ The Python reference implementation, grammar, schemas, vocabulary data, .deo
 tooling, conformance vectors, examples, and repository tooling are licensed
 under the Apache License, Version 2.0 (see LICENSES/Apache-2.0.txt).
 
-Authorship and AI assistance: all code, the specification, and documentation are
-authored by the project's human author(s), who hold the copyright. Generative AI
-tools were used to assist with development. An AI system is a tool, not an author
-or a contributor: it holds no copyright and makes no copyright claim, and AI
-systems cannot hold copyright. This assistance is acknowledged here, not recorded
-as authorship. An assisted commit ends with a plain line naming the tool used —
-"Assisted by <tool> (<vendor>); not an author or copyright holder." — never an
-authorship or co-authorship trailer, so the commit history records which tool
-assisted each change without this project endorsing or depending on any.
+Authorship: all code and documentation are authored by the project's human
+author(s), who hold the copyright. Generative AI tools assisted with
+development. An AI system is a tool: it is not an author or a contributor,
+holds no copyright and makes no copyright claim.
