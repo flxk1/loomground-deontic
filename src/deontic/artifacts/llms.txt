@@ -54,9 +54,15 @@ the rendered text.
 
 Couples to solver by string agreement only — deontic imports no solver type.
 - `dimension_affinity(op)` → always `None`. Deontic is not causal: operators
-  (O/P/F) are OUGHT and bind to no 5D dimension (the 5D describes what IS). A
-  norm's content — the regulated action/state — is what a consumer lowers into
-  5D, through the factual plane, never through the operator.
+  (O/P/F) are OUGHT and bind to no 5D dimension, in any form or under any name
+  (the 5D describes what IS). A norm's content — the regulated action/state —
+  is what a consumer lowers into 5D, never through the operator: the `action`
+  nD coordinate (`nd-system.json`, `concept_reference`) is a reference to an
+  action-type entry the consumer creates from the claim's `spans.content`
+  (never a 5D channel itself), linked to the norm by a structural `embeds`
+  link. Negation is recorded once, on the norm's `negated` axis — the sole
+  authority for a not/never clause; an action-type entry records the same
+  polarity, never a conflicting one.
 - `incident_vocabulary()` → the closed 8-set to inject into a norm-theory floor
   (the solver default differs — inject this).
 - `conflict_candidates(formulae)` → collision edges (`predicate=may-conflict-with`).
