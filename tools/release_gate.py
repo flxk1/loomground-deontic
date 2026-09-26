@@ -55,6 +55,8 @@ REQUIRED_WHEEL_ARTIFACTS = (
     "deontic/artifacts/vocabulary/operators.json",
     "deontic/artifacts/vocabulary/incidents.json",
     "deontic/artifacts/conformance/manifest.json",
+    "deontic/artifacts/conformance/prose.json",
+    "deontic/artifacts/nd-system.json",
 )
 
 

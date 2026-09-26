@@ -28,6 +28,11 @@ Homepage = "https://github.com/flxk1/loomground-deontic"
 Repository = "https://github.com/flxk1/loomground-deontic"
 Issues = "https://github.com/flxk1/loomground-deontic/issues"
 
+# The deontic plane descriptor (shared plane descriptor contract v1): a store that
+# carries nD coordinates (the versum) discovers the plane through this group.
+[project.entry-points."loomground.planes"]
+deontic = "deontic.plane:plane"
+
 [tool.setuptools.dynamic]
 version = { attr = "deontic._version.__version__" }
 
@@ -44,6 +49,7 @@ deontic = [
     "artifacts/llms.txt",
     "artifacts/deontic-card.json",
     "artifacts/extraction.json",
+    "artifacts/nd-system.json",
     "artifacts/grammar/*.ebnf",
     "artifacts/schema/*.json",
     "artifacts/vocabulary/*.json",

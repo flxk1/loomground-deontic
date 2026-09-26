@@ -40,9 +40,8 @@ from dataclasses import dataclass, asdict
 from typing import Any
 
 from ._version import __version__
-from .operators import (
-    OP_OBLIGATION, OP_PERMISSION, OP_PROHIBITION, VALID_OPERATORS,
-)
+from .artifacts import load_json
+from .operators import VALID_OPERATORS
 from .incidents import INCIDENTS, correlative
 from .formula import DeonticFormula, detect_conflicts
 from .grammar import project
@@ -69,12 +68,22 @@ SOLVER_DIMENSIONS = (
 # *triggered* by its condition (causal); a permission exists *for* a bearer's
 # benefit (intentional). This is language — the operator's meaning — expressed as
 # a contract string; the consumer builds the typed edge and may override per its
-# own domain knowledge.
-_OP_AFFINITY: dict[str, str] = {
-    OP_OBLIGATION: "causal",
-    OP_PROHIBITION: "causal",
-    OP_PERMISSION: "intentional",
-}
+# own domain knowledge. The map is published data, held in exactly one package
+# file (``artifacts/extraction.json`` → ``operator_axis``); this module and the
+# plane descriptor (:mod:`deontic.plane`) both read it from there, so there is no
+# second copy in code to drift.
+def _load_affinity() -> dict[str, str]:
+    raw = load_json("extraction.json")["operator_axis"]
+    if set(raw) != set(VALID_OPERATORS):
+        raise ValueError(f"extraction.json operator_axis keys {sorted(raw)} != "
+                         f"operators {list(VALID_OPERATORS)}")
+    bad = {op: dim for op, dim in raw.items() if dim not in SOLVER_DIMENSIONS}
+    if bad:
+        raise ValueError(f"extraction.json operator_axis names non-dimensions {bad}")
+    return {str(op): str(dim) for op, dim in raw.items()}
+
+
+_OP_AFFINITY: dict[str, str] = _load_affinity()
 
 
 def dimension_affinity(operator: str) -> str:
