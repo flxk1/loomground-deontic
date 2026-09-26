@@ -1,0 +1,20 @@
+{
+  "describes": "Prose vectors for the deontic plane's producer: plain English sentences and the structured statements (statement.schema.json shape) the language lowers each one to. An empty expected list means the sentence states no norm. The first seven are the credit-decision case; the rest cover the published condition and exception cues and the negative-determiner prohibition.",
+  "vectors": [
+    { "name": "credit-s1-classification", "sentence": "The bank is a controller.", "expected": [] },
+    { "name": "credit-s2-part-of", "sentence": "The scoring model is part of the credit system.", "expected": [] },
+    { "name": "credit-s3-prohibition", "sentence": "The controller must not make a solely automated decision on a credit application.",
+      "expected": [ { "operator": "F", "bearer": "controller", "action": "make a solely automated decision on a credit application", "condition": "", "exception": "", "negated": false, "incident": "", "counterparty": "" } ] },
+    { "name": "credit-s4-permission", "sentence": "The controller may use the score to prepare a decision.",
+      "expected": [ { "operator": "P", "bearer": "controller", "action": "use the score to prepare a decision", "condition": "", "exception": "", "negated": false, "incident": "", "counterparty": "" } ] },
+    { "name": "credit-s5-knowledge", "sentence": "The controller knows that the training data is inaccurate.", "expected": [] },
+    { "name": "credit-s6-obligation", "sentence": "A reviewer shall examine every rejection before it is sent.",
+      "expected": [ { "operator": "O", "bearer": "reviewer", "action": "examine every rejection", "condition": "before it is sent", "exception": "", "negated": false, "incident": "", "counterparty": "" } ] },
+    { "name": "credit-s7-ordering", "sentence": "The review follows the automated scoring.", "expected": [] },
+    { "name": "condition-exception", "sentence": "If processing is carried out, the controller shall implement appropriate measures unless the processing is occasional.",
+      "expected": [ { "operator": "O", "bearer": "controller", "action": "implement appropriate measures", "condition": "processing is carried out", "exception": "the processing is occasional", "negated": false, "incident": "", "counterparty": "" } ] },
+    { "name": "negative-determiner", "sentence": "No processor may engage another processor.",
+      "expected": [ { "operator": "F", "bearer": "processor", "action": "engage another processor", "condition": "", "exception": "", "negated": false, "incident": "", "counterparty": "" } ] },
+    { "name": "embedded-norm-not-asserted", "sentence": "The auditor believes that the processor must delete the data.", "expected": [] }
+  ]
+}

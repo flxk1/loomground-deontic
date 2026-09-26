@@ -1,0 +1,138 @@
+{
+  "describes": "The deontic plane's nD system: the axes a deontic statement occupies when it is carried as coordinates (operator, Hohfeld incident, bearer, action, counterparty, condition, exception, negation), with the form-slot binding rules for a deontic claim. Published as data for any nD store (the versum reads it through the loomground.planes entry point); version equals the language version. Closed vocabularies equal vocabulary/operators.json and vocabulary/incidents.json (held equal by the test suite).",
+  "id": "loomground-deontic",
+  "namespace": "deontic",
+  "version": "0.2.1",
+  "axes": {
+    "operator": {
+      "value_type": "controlled_identifier",
+      "vocabulary_mode": "closed",
+      "vocabulary": [
+        "O",
+        "P",
+        "F"
+      ],
+      "cardinality": "one",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "incident": {
+      "value_type": "controlled_identifier",
+      "vocabulary_mode": "closed",
+      "vocabulary": [
+        "claim",
+        "duty",
+        "privilege",
+        "no-right",
+        "power",
+        "liability",
+        "immunity",
+        "disability"
+      ],
+      "cardinality": "one",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "bearer": {
+      "value_type": "entity_reference",
+      "vocabulary_mode": "open",
+      "cardinality": "one",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "action": {
+      "value_type": "concept_reference",
+      "vocabulary_mode": "open",
+      "cardinality": "one",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "counterparty": {
+      "value_type": "entity_reference",
+      "vocabulary_mode": "open",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "condition": {
+      "value_type": "string",
+      "vocabulary_mode": "open",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "exception": {
+      "value_type": "string",
+      "vocabulary_mode": "open",
+      "primitives": [
+        "equal"
+      ]
+    },
+    "negated": {
+      "value_type": "boolean",
+      "vocabulary_mode": "open",
+      "cardinality": "one",
+      "primitives": [
+        "equal"
+      ]
+    }
+  },
+  "bindings": [
+    {
+      "form_slot": "statement.operator",
+      "allowed_axes": [
+        "operator"
+      ],
+      "required": true
+    },
+    {
+      "form_slot": "statement.bearer",
+      "allowed_axes": [
+        "bearer"
+      ],
+      "required": true
+    },
+    {
+      "form_slot": "statement.action",
+      "allowed_axes": [
+        "action"
+      ],
+      "required": true
+    },
+    {
+      "form_slot": "statement.condition",
+      "allowed_axes": [
+        "condition"
+      ],
+      "required": false
+    },
+    {
+      "form_slot": "statement.exception",
+      "allowed_axes": [
+        "exception"
+      ],
+      "required": false
+    },
+    {
+      "form_slot": "statement.incident",
+      "allowed_axes": [
+        "incident"
+      ],
+      "required": false
+    },
+    {
+      "form_slot": "statement.counterparty",
+      "allowed_axes": [
+        "counterparty"
+      ],
+      "required": false
+    }
+  ],
+  "validation": {
+    "unknown_values": "reject"
+  }
+}

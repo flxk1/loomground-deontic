@@ -24,6 +24,10 @@ layer. Public surface, by module:
   * :mod:`.artifacts` — data-only loader for the packaged language artifacts.
   * :mod:`.conformance` — vectors and the acceptance runner.
   * :mod:`.protocol` — the neutral protocol a runtime implements.
+  * :mod:`.prose` — deterministic lowering of an English sentence to a formula
+    (operator, bearer, action, condition, exception) from the published cues.
+  * :mod:`.plane` — the plane descriptor (``loomground.planes`` entry point
+    ``deontic``): nD system, 5D binding, producer and examples, as data.
 """
 
 from __future__ import annotations
@@ -66,6 +70,7 @@ from .artifacts import (
 )
 from .conformance import Vector, ConformanceReport, iter_vectors, run_conformance
 from .protocol import DeonticImplementation
+from .prose import extract as extract_prose
 
 __all__ = [
     "__version__",
@@ -103,4 +108,6 @@ __all__ = [
     "Vector", "ConformanceReport", "iter_vectors", "run_conformance",
     # protocol
     "DeonticImplementation",
+    # prose lowering (the plane producer's reader)
+    "extract_prose",
 ]
