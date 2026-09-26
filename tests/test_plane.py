@@ -68,19 +68,21 @@ def test_nd_system_vocabularies_equal_the_language():
         assert set(rule["allowed_axes"]) <= set(axes)
 
 
-# ── binding: one data file, five dimensions only ─────────────────
-def test_binding_is_the_published_operator_axis_and_d1():
+# ── binding: ought carries no 5D dimension (Round 4, D1 reversed) ────
+def test_binding_is_empty_because_ought_carries_no_5d_dimension():
     b = dplane.binding()
-    assert b == load_json("extraction.json")["operator_axis"]
-    assert b == {"O": "causal", "P": "intentional", "F": "causal"}  # D1
-    assert set(b.values()) <= FIVE
-    assert set(b) == set(deontic.VALID_OPERATORS)
+    assert b == {}
+    assert "operator_axis" not in load_json("extraction.json")
+    doc = dplane.nd_system()
+    assert ("operators are ought; the 5D describes what is; a norm's content "
+            "enters 5D through the factual plane") in doc["describes"]
 
 
-def test_contract_affinity_reads_the_same_file():
-    assert {op: contract.dimension_affinity(op) for op in deontic.VALID_OPERATORS} \
-        == dplane.binding()
-    assert contract.dimension_affinity("Z") == "relational"
+def test_contract_affinity_is_none_for_every_operator():
+    for op in list(deontic.VALID_OPERATORS) + ["O", "P", "F", "Z"]:
+        assert contract.dimension_affinity(op) is None
+    assert {op: contract.dimension_affinity(op) for op in deontic.VALID_OPERATORS} == \
+        {"O": None, "P": None, "F": None}
 
 
 def _operator_maps(obj, path=()):
@@ -97,13 +99,13 @@ def _operator_maps(obj, path=()):
             yield from _operator_maps(v, path + (i,))
 
 
-def test_binding_lives_in_exactly_one_package_data_file():
+def test_no_package_data_file_publishes_an_operator_dimension_binding():
     root = SRC / "artifacts"
     hits = []
     for f in sorted(root.rglob("*.json")):
         for p in _operator_maps(json.loads(f.read_text(encoding="utf-8"))):
             hits.append((f.relative_to(root).as_posix(), p))
-    assert hits == [("extraction.json", ("operator_axis",))]
+    assert hits == []
     # and no Python module keeps its own operator -> dimension literal
     literal = re.compile(r"""(?:OP_\w+|["'][OPF]["'])\s*:\s*["'](?:structural|causal|"""
                          r"""intentional|temporal|relational)["']""")
@@ -142,7 +144,35 @@ def test_normative_sentences(key, op, bearer, action, condition):
     assert claim["coordinates"]["operator"] == op
     assert claim["coordinates"]["bearer"] == bearer
     assert claim["slots"]["statement.bearer"] == "bearer"
-    assert dplane.binding()[claim["relation"]] in FIVE
+    # the operator carries no 5D dimension: it is not a key of the (empty) binding
+    assert claim["relation"] not in dplane.binding()
+
+
+@pytest.mark.parametrize("key,content", [
+    ("s3", "make a solely automated decision on a credit application"),
+    ("s4", "use the score to prepare a decision"),
+    ("s6", "examine every rejection"),
+])
+def test_content_span_is_a_literal_sentence_offset(key, content):
+    sentence = CREDIT[key]
+    (claim,) = dplane.produce(sentence)
+    span = claim["spans"]["content"]
+    assert span == {"start": sentence.find(content), "end": sentence.find(content) + len(content),
+                    "text": content}
+    assert sentence[span["start"]:span["end"]] == content == span["text"]
+
+
+def test_condition_span_is_a_literal_sentence_offset_where_present():
+    sentence = CREDIT["s6"]
+    (claim,) = dplane.produce(sentence)
+    span = claim["spans"]["condition"]
+    condition = "before it is sent"
+    assert sentence[span["start"]:span["end"]] == condition == span["text"]
+    # s3/s4 carry no condition: no condition span is published
+    (s3,) = dplane.produce(CREDIT["s3"])
+    (s4,) = dplane.produce(CREDIT["s4"])
+    assert "condition" not in s3["spans"]
+    assert "condition" not in s4["spans"]
 
 
 def test_negated_obligation_is_a_prohibition_never_a_duty():

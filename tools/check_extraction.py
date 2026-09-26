@@ -11,14 +11,18 @@ This gate proves they have not:
 
   A. Incident cues — the power-verb and immunity regex sources equal the compiled
      sources in `deontic.incidents`.
-  B. Operator mapping / axis — `modal_operator` equals the language's
-     modal→operator, and `operator_axis` equals the binding pinned HERE
-     (`EXPECTED_OPERATOR_AXIS`: O/F -> causal, P -> intentional, decision D1) and
-     names only dimensions `vocabulary/dimensions.json` publishes. The pin is held
-     in this checker on purpose: `deontic.contract.dimension_affinity` now reads
-     `operator_axis` itself, so comparing against it would compare the artifact
-     with itself and could never fail. Changing the binding means changing this
-     pin in the same commit, in review.
+  B. Operator mapping / no-dimension rule (Round 4, deontic-is-ought correction:
+     D1 reversed) — `modal_operator` equals the language's modal→operator, and
+     the published artifact carries NO operator->5D-dimension binding at all:
+     no key named `operator_axis` (or any operator->dimension map, under any
+     name, anywhere in the artifact) is present. Operators (O/P/F) are OUGHT —
+     the 5D describes what IS — so no operator may be bound to a 5D dimension;
+     a norm's content enters 5D only through the factual plane. This gate is
+     independent of `deontic.contract.dimension_affinity` and
+     `deontic.plane.binding` on purpose (both are also asserted, elsewhere, to
+     return no dimension for any operator) — Gate B fails on the ARTIFACT
+     itself carrying an operator->dimension map, a stricter and independent
+     guard than merely trusting the code that reads it.
   C. Incident rules — applying the published rules reproduces
      `deontic.incidents.classify_incident` over an oracle set covering every branch.
   D. Regex validity — every published pattern compiles.
@@ -46,11 +50,12 @@ from deontic import incidents as di  # noqa: E402
 ARTIFACT = SRC / "deontic" / "artifacts" / "extraction.json"
 DIMENSIONS = SRC / "deontic" / "artifacts" / "vocabulary" / "dimensions.json"
 
-# Gate B's independent expectation (decision D1): an obligation or a prohibition
-# is triggered by its condition (causal); a permission exists for its bearer's
-# benefit (intentional). Deliberately NOT read from extraction.json or from
-# deontic.contract (which reads extraction.json).
-EXPECTED_OPERATOR_AXIS = {"O": "causal", "F": "causal", "P": "intentional"}
+# Gate B's independent rule (Round 4, D1 reversed): ought carries no 5D
+# dimension. No dict anywhere in the published artifact may map an operator (or
+# a subset of the operators) to a 5D dimension name — under `operator_axis` or
+# any other key. Deliberately NOT read from `deontic.contract` (which no longer
+# reads any such mapping either, but this gate does not trust that).
+FIVE_DIMENSIONS = {"structural", "causal", "intentional", "temporal", "relational"}
 
 
 def load(path: Path = ARTIFACT) -> dict:
@@ -70,6 +75,21 @@ def check_incident_cues(ex: dict | None = None) -> list[str]:
     return fails
 
 
+def _operator_dimension_maps(obj, path=()):
+    """Every dict anywhere in ``obj`` whose keys are a (non-empty) subset of the
+    deontic operators and whose values are all 5D dimension names — i.e. any
+    shape of an operator->dimension binding, under any key."""
+    if isinstance(obj, dict):
+        if obj and set(obj) <= set(deontic.VALID_OPERATORS) and \
+                all(isinstance(v, str) and v in FIVE_DIMENSIONS for v in obj.values()):
+            yield path
+        for k, v in obj.items():
+            yield from _operator_dimension_maps(v, path + (k,))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from _operator_dimension_maps(v, path + (i,))
+
+
 def check_operator_mapping(ex: dict | None = None) -> list[str]:
     ex = EX if ex is None else ex
     fails = []
@@ -77,16 +97,12 @@ def check_operator_mapping(ex: dict | None = None) -> list[str]:
                    "prohibition": deontic.OP_PROHIBITION}
     if ex["modal_operator"] != expected_op:
         fails.append(f"modal_operator {ex['modal_operator']} != language {expected_op}")
-    axis = ex["operator_axis"]
-    if set(EXPECTED_OPERATOR_AXIS) != set(deontic.VALID_OPERATORS):
-        fails.append(f"pinned axis operators {sorted(EXPECTED_OPERATOR_AXIS)} != "
-                     f"language operators {sorted(deontic.VALID_OPERATORS)}")
-    if axis != EXPECTED_OPERATOR_AXIS:
-        fails.append(f"operator_axis {axis} != pinned D1 binding {EXPECTED_OPERATOR_AXIS}")
-    published = {d["name"] for d in load(DIMENSIONS)["dimensions"]}
-    unknown = {op: dim for op, dim in axis.items() if dim not in published}
-    if unknown:
-        fails.append(f"operator_axis names dimensions not in dimensions.json: {unknown}")
+    if "operator_axis" in ex:
+        fails.append("extraction.json still carries operator_axis: ought binds no 5D dimension")
+    hits = list(_operator_dimension_maps(ex))
+    if hits:
+        fails.append(f"extraction.json carries an operator->5D-dimension map at {hits}: "
+                     "ought binds no 5D dimension")
     if ex["dimension"] != "nD":
         fails.append(f"dimension {ex['dimension']!r} != 'nD'")
     return fails
@@ -166,7 +182,7 @@ def check_validity_rules(ex: dict | None = None) -> list[str]:
 
 _CHECKS = (
     ("incident cues equal the language", check_incident_cues),
-    ("operator mapping equals the language; axis equals the pinned D1 binding", check_operator_mapping),
+    ("operator mapping equals the language; no operator carries a 5D dimension", check_operator_mapping),
     ("incident rules reproduce classify_incident", check_incident_rules),
     ("every published pattern compiles", check_regex_validity),
     ("validity rules stay on the published incidents", check_validity_rules),

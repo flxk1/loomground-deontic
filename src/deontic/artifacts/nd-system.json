@@ -1,5 +1,5 @@
 {
-  "describes": "The deontic plane's nD system: the axes a deontic statement occupies when it is carried as coordinates (operator, Hohfeld incident, bearer, action, counterparty, condition, exception, negation), with the form-slot binding rules for a deontic claim. Published as data for any nD store (the versum reads it through the loomground.planes entry point); version equals the language version. Closed vocabularies equal vocabulary/operators.json and vocabulary/incidents.json (held equal by the test suite).",
+  "describes": "The deontic plane's nD system: the axes a deontic statement occupies when it is carried as coordinates (operator, Hohfeld incident, bearer, action, counterparty, condition, exception, negation), with the form-slot binding rules for a deontic claim. Published as data for any nD store (the versum reads it through the loomground.planes entry point); version equals the language version. Closed vocabularies equal vocabulary/operators.json and vocabulary/incidents.json (held equal by the test suite). Round 4: the plane's 5D binding (deontic.plane.binding()) is {} — operators are ought; the 5D describes what is; a norm's content enters 5D through the factual plane.",
   "id": "loomground-deontic",
   "namespace": "deontic",
   "version": "0.2.1",

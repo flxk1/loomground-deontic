@@ -9,10 +9,22 @@ zero-argument :func:`plane` returns, as plain data plus one pure function:
   * ``language_version`` — the language version from the packaged language card;
   * ``nd_system`` — the published nD-system document (``artifacts/nd-system.json``),
     whose ``version`` equals ``language_version``;
-  * ``binding`` — relation → 5D dimension, read from exactly one package data file
-    (``artifacts/extraction.json`` → ``operator_axis``: O → causal,
-    P → intentional, F → causal); a claim's ``relation`` is its operator;
-  * ``produce`` — :func:`produce`, pure and deterministic;
+  * ``binding`` — relation → 5D dimension: always ``{}`` (Round 4 correction).
+    Operators (O/P/F) are OUGHT, not IS; the 5D describes what IS, so no
+    operator binds to a 5D dimension. A norm's content enters 5D through the
+    factual plane, never through the operator. The reason is recorded in
+    ``nd_system()["describes"]`` (a sibling field of this descriptor), not as a
+    key here, so the descriptor's key set is unchanged;
+  * ``produce`` — :func:`produce`, pure and deterministic; each claim also
+    carries ``spans`` — ``{"content": {"start", "end", "text"}, "condition":
+    {...}}`` (the latter only when a condition is present) — exact character
+    offsets of the norm's regulated action/state (and, where present, its
+    condition) into the *sentence*, with ``sentence[start:end] == text``, so a
+    consumer (versum) can create a content entry with a structural ``embeds``
+    link. ``spans`` omits a key when the corresponding text is not found as a
+    literal substring of the sentence (e.g. a prose condition assembled from a
+    lead clause and a tail clause joined by ``"; "`` is not itself a sentence
+    substring: abstain rather than publish a wrong offset);
   * ``examples`` — the published conformance vectors (formal statements) and the
     published prose vectors (``artifacts/conformance/prose.json``), each with the
     claims the plane must produce for it.
@@ -58,8 +70,34 @@ def nd_system() -> dict:
 
 
 def binding() -> dict[str, str]:
-    """The plane's relation → 5D binding, from its one data file."""
-    return {str(k): str(v) for k, v in load_json("extraction.json")["operator_axis"].items()}
+    """The plane's relation → 5D binding: always ``{}``.
+
+    Round 4 correction: operators (O/P/F) are OUGHT — a normative force over a
+    bearer:action pair — not a fact on the 5D manifold the plane's 5D describes.
+    No operator binds to a 5D dimension; the reason is published alongside this
+    plane's nD system (:func:`nd_system`, ``describes``): "operators are ought;
+    the 5D describes what is; a norm's content enters 5D through the factual
+    plane". A consumer that needs the norm's content in 5D reads the ``spans``
+    a claim carries (:func:`claim_for`) and lowers that content through the
+    factual plane, never through this binding.
+    """
+    return {}
+
+
+def _span(sentence: str, text: str) -> dict[str, Any] | None:
+    """The literal character span of ``text`` in ``sentence``, or ``None``.
+
+    ``None`` when ``text`` is empty or is not found as a contiguous substring of
+    ``sentence`` (e.g. a prose condition assembled from a lead clause and a tail
+    clause is not itself a sentence substring): abstain rather than publish a
+    wrong offset. Invariant when not ``None``: ``sentence[start:end] == text``.
+    """
+    if not text:
+        return None
+    start = sentence.find(text)
+    if start < 0:
+        return None
+    return {"start": start, "end": start + len(text), "text": text}
 
 
 def claim_for(sentence: str, statement: dict[str, Any], method: str) -> dict[str, Any]:
@@ -69,6 +107,14 @@ def claim_for(sentence: str, statement: dict[str, Any], method: str) -> dict[str
     it is carried unchanged under ``statement`` so a consumer can read it back
     field for field. Coordinates are its non-empty fields (plus ``negated``); each
     non-empty field is bound to its form slot.
+
+    ``spans`` locates the norm's content in the sentence, for a consumer (versum)
+    that wants a content entry with a structural ``embeds`` link:
+    ``{"content": {"start", "end", "text"}}`` for the regulated action/state
+    (``statement["action"]``), plus ``"condition": {...}`` when the statement
+    carries a condition and it is found literally in the sentence. See
+    :func:`_span` for the abstention rule and :mod:`deontic.plane`'s module
+    docstring for the field shape.
     """
     coords: dict[str, Any] = {}
     slots: dict[str, str] = {}
@@ -78,6 +124,13 @@ def claim_for(sentence: str, statement: dict[str, Any], method: str) -> dict[str
             coords[field] = value
             slots[slot] = field
     coords["negated"] = bool(statement.get("negated", False))
+    spans: dict[str, Any] = {}
+    content_span = _span(sentence, statement.get("action", ""))
+    if content_span is not None:
+        spans["content"] = content_span
+    condition_span = _span(sentence, statement.get("condition", ""))
+    if condition_span is not None:
+        spans["condition"] = condition_span
     return {
         "relation": statement["operator"],
         "span": [0, len(sentence)],
@@ -85,6 +138,7 @@ def claim_for(sentence: str, statement: dict[str, Any], method: str) -> dict[str
         "slots": slots,
         "method": method,
         "statement": dict(statement),
+        "spans": spans,
     }
 
 
