@@ -53,9 +53,10 @@ the rendered text.
 ## Composition contract (what a reasoner consumes)
 
 Couples to solver by string agreement only — deontic imports no solver type.
-- `dimension_affinity(op)` → a string in `{structural,causal,intentional,
-  temporal,relational}` (`O`/`F`→`causal`, `P`→`intentional`). The consumer
-  builds the typed edge.
+- `dimension_affinity(op)` → always `None`. Deontic is not causal: operators
+  (O/P/F) are OUGHT and bind to no 5D dimension (the 5D describes what IS). A
+  norm's content — the regulated action/state — is what a consumer lowers into
+  5D, through the factual plane, never through the operator.
 - `incident_vocabulary()` → the closed 8-set to inject into a norm-theory floor
   (the solver default differs — inject this).
 - `conflict_candidates(formulae)` → collision edges (`predicate=may-conflict-with`).

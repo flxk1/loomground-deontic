@@ -27,7 +27,8 @@ layer. Public surface, by module:
   * :mod:`.prose` — deterministic lowering of an English sentence to a formula
     (operator, bearer, action, condition, exception) from the published cues.
   * :mod:`.plane` — the plane descriptor (``loomground.planes`` entry point
-    ``deontic``): nD system, 5D binding, producer and examples, as data.
+    ``deontic``): nD system, 5D binding (always ``{}`` — operators are ought
+    and bind no 5D dimension), producer and examples, as data.
 """
 
 from __future__ import annotations
