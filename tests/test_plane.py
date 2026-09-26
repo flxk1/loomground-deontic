@@ -173,6 +173,32 @@ def test_prose_abstains_rather_than_guessing(sentence):
     assert dplane.produce(sentence) == []
 
 
+# ── abstention on shapes the prose lowering cannot read (round 2) ────────
+@pytest.mark.parametrize("sentence", [
+    "Processing may be necessary.",                    # epistemic 'may be', no agent
+    "It must be noted that the report is late.",        # expletive subject
+    "The controller shall ensure that data is deleted after use.",  # 'after use' is
+                                                        # an adverbial, not a condition
+])
+def test_prose_abstains_on_non_agentive_expletive_and_adverbial(sentence):
+    assert deontic.extract_prose(sentence) == []
+    assert dplane.produce(sentence) == []
+
+
+def test_credit_case_normative_outputs_are_pinned_literally():
+    got = {k: [c["statement"] for c in dplane.produce(CREDIT[k])] for k in ("s3", "s4", "s6")}
+    blank = {"exception": "", "negated": False, "incident": "", "counterparty": ""}
+    assert got == {
+        "s3": [{"operator": "F", "bearer": "controller",
+                "action": "make a solely automated decision on a credit application",
+                "condition": "", **blank}],
+        "s4": [{"operator": "P", "bearer": "controller",
+                "action": "use the score to prepare a decision", "condition": "", **blank}],
+        "s6": [{"operator": "O", "bearer": "reviewer", "action": "examine every rejection",
+                "condition": "before it is sent", **blank}],
+    }
+
+
 def test_produce_is_pure_and_deterministic():
     ctx = {"source": {"jurisdiction": "EU"}}
     before = copy.deepcopy(ctx)

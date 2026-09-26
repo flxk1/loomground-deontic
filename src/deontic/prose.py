@@ -10,17 +10,42 @@ credit application)``.
 
 Every cue comes from the published extraction data
 (``artifacts/extraction.json``: ``modal_cues`` and ``slot_cues``); this module
-keeps no second copy of them. It is a surface lowering, not reasoning: it never
-guesses, and a sentence it cannot read cleanly lowers to ``[]`` (no norm) rather
-than to a wrong one. A negated modal ("must not", "shall not", "may not") lowers
-to F, never to an obligation to do the forbidden act (the rule of
-:func:`deontic.formula.formula_from_fields`). The formal statement grammar
-(:func:`deontic.grammar.parse`) is untouched; this is a separate entry for prose.
+keeps no second copy of them. It is a surface lowering, not reasoning. A negated
+modal ("must not", "shall not", "may not") lowers to F, never to an obligation to
+do the forbidden act (the rule of :func:`deontic.formula.formula_from_fields`).
+The formal statement grammar (:func:`deontic.grammar.parse`) is untouched; this
+is a separate entry for prose.
+
+What it guarantees, and no more: the result is ``[]`` or exactly one formula; it
+is deterministic; and it abstains (``[]``) instead of emitting a formula in each
+of the cases listed below, which are the shapes it knows it cannot read. It does
+NOT guarantee that every formula it does emit is the right reading of an
+arbitrary English sentence: outside the listed shapes a sentence can still be
+misread, and a consumer that needs certainty validates the claim downstream.
+
+It abstains when:
+
+  * no English modal cue is found, or the modal is a German cue surface
+    (this lowering reads English word order only);
+  * the subject or the action is empty, or the subject holds a clause marker
+    ("that", "which", "who", "knows", ...: an embedded norm is not asserted);
+  * the subject is an expletive or bare demonstrative ("it", "there", "this",
+    "that", "these", "those"), which bears no norm ("It must be noted that ...");
+  * the action opens with "be"/"been"/"being" or "have/has been": the modal then
+    reads as a possibility or necessity of a state ("Processing may be
+    necessary.") or as an agentless passive, and the subject is not shown to be
+    an agent bearing a duty or a permission to act;
+  * a trailing ``slot_cues.condition_tail`` phrase is not a clause (it carries
+    no auxiliary or copula, e.g. "after use"), or the action before it holds an
+    embedded clause ("ensure that data is deleted after use"): the phrase may be
+    an adverbial of the action rather than a condition of the norm, and the
+    lowering does not pick one;
+  * the bearer is longer than six words.
 
 Scope (defaults): English only; one norm per sentence (the earliest modal cue);
 a bearer is the subject noun phrase before the modal with its leading article
-removed; a sentence whose subject contains a clause marker ("that", "which",
-"who", ...) is left alone (an embedded norm is not asserted by the sentence).
+removed; "No X shall/may ..." lowers to F with bearer X. A trailing condition is
+lifted only when it is a clause, as in "before it is sent".
 Standard library only.
 """
 from __future__ import annotations
@@ -49,6 +74,16 @@ _CLAUSE_MARKER = re.compile(r"\b(?:that|which|who|whom|whose|knows|believes|says
 # The published modal cues are bilingual; this lowering reads English word order only,
 # so a sentence whose modal is one of the German cue surfaces lowers to [] (not guessed).
 _GERMAN_MODAL = re.compile(r"^(?:darf|muss|m(?:ü|u)ssen|hat\s+zu|kann)\b", re.I)
+# Subjects that bear no norm: expletives and bare demonstratives.
+_NON_BEARER = frozenset({"it", "there", "this", "that", "these", "those"})
+# An action that opens with a copula reads a state or an agentless passive, not an act.
+_STATE_ACTION = re.compile(r"^(?:be|been|being|ha(?:ve|s)\s+been)\b", re.I)
+# A trailing condition is lifted only when it is a clause: it carries an auxiliary
+# or a copula ("before it IS sent"); a bare phrase ("after use") is not lifted.
+_CLAUSE_VERB = re.compile(r"\b(?:is|are|was|were|be|been|has|have|had|does|do|did|"
+                          r"can|could|will|would|shall|should|may|might|must)\b", re.I)
+# An embedded clause in the action makes the attachment of a trailing phrase ambiguous.
+_EMBEDDED = re.compile(r"\b(?:that|which|whether|who|whom|whose)\b", re.I)
 _TRAIL = " \t\r\n.;:!?,"
 _MAX_BEARER_WORDS = 6
 
@@ -96,6 +131,10 @@ def extract(sentence: str) -> list[DeonticFormula]:
     m = _CONDITION_TAIL.search(action)
     if m:
         tail = m.group("cond").strip(_TRAIL)
+        # a bare phrase ("after use") or a tail after an embedded clause may modify
+        # the action rather than condition the norm: abstain rather than pick one
+        if not _CLAUSE_VERB.search(tail) or _EMBEDDED.search(action[:m.start()]):
+            return []
         condition = f"{condition}; {tail}" if condition else tail
         action = action[:m.start()].strip(_TRAIL)
 
@@ -103,6 +142,8 @@ def extract(sentence: str) -> list[DeonticFormula]:
     if _GERMAN_MODAL.match(cue.group(0)) or not subject or not action:
         return []
     if _CLAUSE_MARKER.search(subject):
+        return []
+    if subject.lower() in _NON_BEARER or _STATE_ACTION.match(action):
         return []
     if _NEGATIVE_DETERMINER.match(subject):
         # "No person shall/may X" forbids X for every person: a prohibition.
