@@ -71,13 +71,21 @@ def run_batch(sentences: list[str], path: str | Path) -> dict[str, int]:
             record["operator"] = frame.operator
             record["bearer"] = frame.bearer
             record["action"] = frame.action
+            record["action_head"] = frame.action_head
             record["exception_status"] = frame.exception_status
             record["certainty"] = frame.certainty
+            field_abstentions = [
+                {"field": name, "reason": reason}
+                for name, reason in sorted(frame.field_reasons.items())
+                if name != "exception_status"
+            ]
             if frame.exception_status in (prose_grammar.EXCEPTION_XREF_UNRESOLVED,
                                           prose_grammar.EXCEPTION_EXTERNAL_UNRESOLVED):
-                record["field_abstentions"] = [
+                field_abstentions.append(
                     {"field": "exception", "reason": frame.exception_status}
-                ]
+                )
+            if field_abstentions:
+                record["field_abstentions"] = field_abstentions
         else:
             abstained += 1
             record["reason"] = frame.reason

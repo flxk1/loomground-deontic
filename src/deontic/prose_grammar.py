@@ -50,6 +50,7 @@ from .artifacts import load_json
 __all__ = [
     "CERTAIN", "INFERRED", "AMBIGUOUS", "CERTAINTY",
     "ACTION_IMPLICIT", "NO_MODAL", "AMBIGUOUS_NEGATION", "AMBIGUOUS_SUBJECT",
+    "ACTION_HEAD_INDETERMINATE",
     "EXCEPTION_XREF_UNRESOLVED", "EXCEPTION_EXTERNAL_UNRESOLVED",
     "CONDITION_ADVERBIAL_AMBIGUOUS", "ABSTAIN_REASONS",
     "NONE_DETECTED", "INTERNAL_PARSED", "EXCEPTION_STATUSES",
@@ -70,10 +71,11 @@ AMBIGUOUS_SUBJECT = "AMBIGUOUS_SUBJECT"
 EXCEPTION_XREF_UNRESOLVED = "EXCEPTION_XREF_UNRESOLVED"
 EXCEPTION_EXTERNAL_UNRESOLVED = "EXCEPTION_EXTERNAL_UNRESOLVED"
 CONDITION_ADVERBIAL_AMBIGUOUS = "CONDITION_ADVERBIAL_AMBIGUOUS"
+ACTION_HEAD_INDETERMINATE = "ACTION_HEAD_INDETERMINATE"
 ABSTAIN_REASONS = frozenset({
     ACTION_IMPLICIT, NO_MODAL, AMBIGUOUS_NEGATION, AMBIGUOUS_SUBJECT,
     EXCEPTION_XREF_UNRESOLVED, EXCEPTION_EXTERNAL_UNRESOLVED,
-    CONDITION_ADVERBIAL_AMBIGUOUS,
+    CONDITION_ADVERBIAL_AMBIGUOUS, ACTION_HEAD_INDETERMINATE,
 })
 
 # ── exception_status vocabulary (stored on the deontic coordinate, next to
@@ -172,7 +174,35 @@ def _slice(text: str, tokens: list[Token], i: int, j: int) -> str:
 @dataclass(frozen=True)
 class ProseFrame:
     """The parser's full result for one sentence: accepted fields with
-    per-field certainty, or a typed abstention. Never a guess."""
+    per-field certainty, or a typed abstention. Never a guess.
+
+    Abstention is **per field**, not only per sentence: ``field_reasons`` maps
+    a field name (``"operator"``, ``"bearer"``, ``"action"``, ``"action_head"``,
+    ``"exception_status"``) to the typed reason that field could not be
+    resolved, for exactly the fields that failed — a field absent from
+    ``field_reasons`` is published with a real value. A sentence with a clear
+    modal but an unclear bearer still yields ``operator`` (with
+    ``field_reasons == {"bearer": AMBIGUOUS_SUBJECT}``): coverage is
+    maximised per field, never collapsed to a single sentence-level guess.
+
+    ``accepted`` stays the whole-frame predicate existing consumers already
+    rely on (:mod:`deontic.prose`, :mod:`deontic.ledger`): ``True`` only when
+    ``operator``, ``bearer`` and ``action`` all resolved (the three fields a
+    :class:`~deontic.formula.DeonticFormula` requires); ``reason`` is then the
+    first of those three field reasons found (operator, then bearer, then
+    action — the same priority the pre-per-field grammar used), for a caller
+    that only wants one code. A caller that wants every field's own outcome
+    reads ``field_reasons`` directly, always populated regardless of
+    ``accepted``.
+
+    ``action_head`` is the governing verb's lemma (stdlib rule-based,
+    deterministic — see ``deontic.prose_grammar._action_head``), published
+    alongside ``action`` (the full span, unchanged); it abstains into
+    ``field_reasons["action_head"]`` (reusing ``action``'s own reason when
+    ``action`` itself abstained, or :data:`ACTION_HEAD_INDETERMINATE` when
+    ``action`` resolved but no governing verb could be identified in it)
+    rather than guess.
+    """
 
     accepted: bool
     reason: str = ""
@@ -180,11 +210,13 @@ class ProseFrame:
     modal_lexeme: str = ""
     bearer: str = ""
     action: str = ""
+    action_head: str = ""
     condition: str = ""
     exception: str = ""
     exception_status: str = NONE_DETECTED
     negated: bool = False
     certainty: dict[str, str] = field(default_factory=dict)
+    field_reasons: dict[str, str] = field(default_factory=dict)
 
 
 def classify_exception_status(exception_text: str) -> str:
@@ -203,6 +235,68 @@ def classify_exception_status(exception_text: str) -> str:
     if any(term in words for term in gaz["external_terms"]):
         return EXCEPTION_EXTERNAL_UNRESOLVED
     return INTERNAL_PARSED
+
+
+def _suffix_lemma(word: str) -> str:
+    """A deterministic, stdlib suffix-stripping fallback lemma for a surface
+    verb form not in ``verb_lemma.json``'s ``lemma_exceptions`` table. Regular
+    inflections only (3rd-person -s/-es, -ing gerund, -ed past), restoring a
+    dropped silent 'e' and undoing a doubled final consonant where the plain
+    suffix strip would otherwise leave a non-word; not general morphology —
+    an irregular or unlisted verb falls back to itself unchanged rather than
+    being guessed at further."""
+    w = word.lower()
+    vowels = "aeiou"
+
+    def _restore_e(stem: str) -> str:
+        if len(stem) >= 2 and stem[-1] == stem[-2] and stem[-1] not in vowels:
+            return stem[:-1]
+        if stem and stem[-1] not in vowels and len(stem) >= 2 and stem[-2] in vowels \
+                and not stem.endswith(("ss", "ll", "ff", "ck", "ng", "sh", "ch", "x")):
+            return stem + "e"
+        return stem
+
+    if w.endswith("ies") and len(w) > 4:
+        return w[:-3] + "y"
+    if w.endswith("ing") and len(w) > 5:
+        return _restore_e(w[:-3])
+    if w.endswith("ed") and len(w) > 4:
+        return _restore_e(w[:-2])
+    if w.endswith("es") and len(w) > 4 and w[:-2].endswith(("s", "x", "z", "ch", "sh")):
+        return w[:-2]
+    if w.endswith("s") and len(w) > 3 and not w.endswith("ss"):
+        return w[:-1]
+    return w
+
+
+def _action_head(action_text: str) -> tuple[str, str]:
+    """The governing verb's lemma for a resolved ``action`` span, or an
+    abstention reason. Stdlib rule-based and deterministic: skip a leading run
+    of fixed manner/temporal adverbs (``verb_lemma.json``'s ``skip_leading`` —
+    not a compiled pattern), then take the first remaining word token as the
+    governing verb (the action span always opens on the matrix verb — a
+    subordinate clause's own verb, e.g. the ``is disclosed`` inside ``ensure
+    that the data is disclosed``, is never the head: the production never
+    walks into the complement). A two-word phrasal lead ("carries out",
+    "sets out") is tried before the single word. Returns ``("", reason)``
+    when no word token opens the (possibly adverb-trimmed) span."""
+    gaz = _load_gazetteer("verb_lemma")
+    skip = set(w.lower() for w in gaz["skip_leading"])
+    exceptions = gaz["lemma_exceptions"]
+    words = [w for w in re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ]+", action_text)]
+    i = 0
+    while i < len(words) and words[i].lower() in skip:
+        i += 1
+    if i >= len(words):
+        return "", ACTION_HEAD_INDETERMINATE
+    if i + 1 < len(words):
+        two = f"{words[i].lower()} {words[i + 1].lower()}"
+        if two in exceptions:
+            return exceptions[two], ""
+    head = words[i].lower()
+    if head in exceptions:
+        return exceptions[head], ""
+    return _suffix_lemma(head), ""
 
 
 def _find_condition_lead(text: str, tokens: list[Token]) -> tuple[str, int]:
@@ -271,12 +365,12 @@ def analyze(sentence: str) -> ProseFrame:
         m = _match_longest(tokens, i, modal_gaz)
         if m is not None:
             end, entry = m
-            found = (i, end, entry["lexeme"], entry.get("operator"))
+            found = (i, end, entry["lexeme"], entry.get("operator"), bool(entry.get("negates")))
             break
     if found is None:
         return ProseFrame(accepted=False, reason=NO_MODAL,
                           certainty={"operator": AMBIGUOUS})
-    modal_start, modal_end, lexeme, forced_operator = found
+    modal_start, modal_end, lexeme, forced_operator, forced_negates = found
 
     subject = _slice(text, tokens, after_cond, modal_start)
 
@@ -347,72 +441,127 @@ def analyze(sentence: str) -> ProseFrame:
     non_bearer = set(lexicon["non_bearer_subjects"])
     state_prefixes = [tuple(p) for p in lexicon["state_action_prefixes"]]
 
-    if not subject or not action:
-        return ProseFrame(accepted=False, reason=ACTION_IMPLICIT if subject else AMBIGUOUS_SUBJECT,
-                          certainty={"action": AMBIGUOUS} if subject else {"bearer": AMBIGUOUS})
-
+    # Abstention from here on is PER FIELD (operator, bearer, action —
+    # action_head and exception_status besides), never a single sentence-wide
+    # guess: a clear modal still yields `operator` even when the bearer or the
+    # action cannot be grounded, each unresolved field recorded in
+    # `field_reasons` with its own typed reason, so a consumer reading one
+    # field never has to throw away another the sentence did answer.
+    field_reasons: dict[str, str] = {}
     subject_words = subject.split()
-    if any(w.lower() in clause_markers for w in subject_words):
-        return ProseFrame(accepted=False, reason=AMBIGUOUS_SUBJECT,
-                          certainty={"bearer": AMBIGUOUS})
-    if subject.lower() in non_bearer:
-        return ProseFrame(accepted=False, reason=AMBIGUOUS_SUBJECT,
-                          certainty={"bearer": AMBIGUOUS})
-
-    action_words = [w.lower() for w in action.split()]
-    for prefix in state_prefixes:
-        if tuple(action_words[:len(prefix)]) == prefix:
-            return ProseFrame(accepted=False, reason=ACTION_IMPLICIT,
-                              certainty={"action": AMBIGUOUS})
 
     forced_prohibition = False
     if subject_words and subject_words[0].lower() == negative_determiner:
         subject = " ".join(subject_words[1:])
+        subject_words = subject.split()
         forced_prohibition = True
 
-    bearer = subject
-    if bearer.split() and bearer.split()[0].lower() in determiners:
-        bearer = " ".join(bearer.split()[1:])
-    if not bearer or len(bearer.split()) > _MAX_BEARER_WORDS:
-        return ProseFrame(accepted=False, reason=AMBIGUOUS_SUBJECT,
-                          certainty={"bearer": AMBIGUOUS})
-
-    # Two negation adverbs/negating-interposed-phrases in one frame ("shall
-    # never not disclose ...") do not cancel to an affirmative by convention
-    # here: the double negation is ambiguous on its face, so the whole frame
-    # abstains rather than collapsing to either polarity.
-    if negation_count >= 2:
-        return ProseFrame(accepted=False, reason=AMBIGUOUS_NEGATION,
-                          certainty={"operator": AMBIGUOUS})
-
-    if forced_prohibition:
-        operator = "F"
-    elif forced_operator:
-        operator = forced_operator
+    bearer = ""
+    if not subject:
+        field_reasons["bearer"] = AMBIGUOUS_SUBJECT
+    elif any(w.lower() in clause_markers for w in subject_words):
+        field_reasons["bearer"] = AMBIGUOUS_SUBJECT
+    elif subject.lower() in non_bearer:
+        field_reasons["bearer"] = AMBIGUOUS_SUBJECT
     else:
-        operator = _NEGATED_MODAL.get((lexeme, negated))
-    if operator is None:
-        return ProseFrame(accepted=False, reason=AMBIGUOUS_NEGATION,
-                          certainty={"operator": AMBIGUOUS})
+        candidate = subject
+        candidate_words = candidate.split()
+        if candidate_words and candidate_words[0].lower() in determiners:
+            candidate = " ".join(candidate_words[1:])
+        if not candidate or len(candidate.split()) > _MAX_BEARER_WORDS:
+            field_reasons["bearer"] = AMBIGUOUS_SUBJECT
+        else:
+            bearer = candidate
+
+    action_words = [w.lower() for w in action.split()] if action else []
+    action_is_state = any(
+        tuple(action_words[:len(prefix)]) == prefix for prefix in state_prefixes
+    ) if action_words else False
+    if not action or action_is_state:
+        field_reasons["action"] = ACTION_IMPLICIT
+        published_action = ""
+    else:
+        published_action = action
+
+    # Negation is counted from every source the surface can carry it in, not
+    # just the adverb/interposed run between modal and action: a negative
+    # determiner on the subject ("No processor ...") and a modal phrase that
+    # itself already lexicalises a negated modal ("is prohibited from", "is
+    # not permitted to" — any modal_lexemes.json entry with "negates": true)
+    # each count as one negator too. Two or more negators in one frame ("shall
+    # never not disclose ...", "is prohibited from not disclosing ...", "No
+    # processor shall never ...") do not cancel to an affirmative by
+    # convention here: the double negation is ambiguous on its face, so the
+    # operator field abstains rather than collapsing to either polarity. This
+    # check runs before any forced-operator assignment below — abstention
+    # never gets pre-empted by a forced F/P dispatch.
+    total_negators = negation_count
+    if forced_negates:
+        total_negators += 1
+    if forced_prohibition:
+        total_negators += 1
+
+    operator = ""
+    if total_negators >= 2:
+        field_reasons["operator"] = AMBIGUOUS_NEGATION
+    else:
+        if forced_prohibition:
+            operator = "F"
+        elif forced_operator:
+            operator = forced_operator
+        else:
+            operator = _NEGATED_MODAL.get((lexeme, negated))
+        if operator is None:
+            operator = ""
+            field_reasons["operator"] = AMBIGUOUS_NEGATION
+
+    if published_action:
+        action_head, action_head_reason = _action_head(published_action)
+    else:
+        action_head, action_head_reason = "", field_reasons["action"]
+    if action_head_reason:
+        field_reasons["action_head"] = action_head_reason
 
     exception_status = classify_exception_status(exception)
+    if exception_status not in (NONE_DETECTED, INTERNAL_PARSED):
+        field_reasons["exception_status"] = exception_status
+
+    # `accepted` is the whole-frame predicate pre-per-field consumers already
+    # rely on: True only when the three fields a DeonticFormula requires
+    # (operator, bearer, action) all resolved. `reason` is then the first of
+    # those three field reasons, in the same operator > bearer > action
+    # priority the grammar used before per-field abstention existed.
+    accepted = not ({"operator", "bearer", "action"} & set(field_reasons))
+    if accepted:
+        reason = ""
+    elif "operator" in field_reasons:
+        reason = field_reasons["operator"]
+    elif "bearer" in field_reasons:
+        reason = field_reasons["bearer"]
+    else:
+        reason = field_reasons["action"]
+
     # Certainty is computed, not a hard-coded constant: a field is CERTAIN only
     # when its value came straight off a cue anchor (the subject immediately
     # before the modal head; a condition matched by a sentence-initial lead
     # phrase); a field reached by a weaker, non-anchoring route (the bearer
     # after stripping a negative determiner that itself carried the semantics
     # of the whole clause; a condition assembled from a trailing adverbial
-    # lead rather than a sentence-initial cue) is INFERRED instead.
+    # lead rather than a sentence-initial cue) is INFERRED instead; a field
+    # that could not be resolved at all is AMBIGUOUS.
     certainty = {
-        "operator": CERTAIN,
-        "bearer": INFERRED if forced_prohibition else CERTAIN,
-        "action": CERTAIN,
+        "operator": AMBIGUOUS if "operator" in field_reasons else CERTAIN,
+        "bearer": (AMBIGUOUS if "bearer" in field_reasons
+                   else (INFERRED if forced_prohibition else CERTAIN)),
+        "action": AMBIGUOUS if "action" in field_reasons else CERTAIN,
+        "action_head": AMBIGUOUS if "action_head" in field_reasons else CERTAIN,
         "condition": INFERRED if tail_condition else CERTAIN,
         "exception_status": CERTAIN if exception_status in (NONE_DETECTED, INTERNAL_PARSED)
                             else AMBIGUOUS,
     }
     return ProseFrame(
-        accepted=True, operator=operator, modal_lexeme=lexeme, bearer=bearer,
-        action=action, condition=condition, exception=exception,
-        exception_status=exception_status, negated=False, certainty=certainty,
+        accepted=accepted, reason=reason, operator=operator, modal_lexeme=lexeme,
+        bearer=bearer, action=published_action, action_head=action_head,
+        condition=condition, exception=exception, exception_status=exception_status,
+        negated=False, certainty=certainty, field_reasons=dict(field_reasons),
     )

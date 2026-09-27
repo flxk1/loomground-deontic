@@ -63,11 +63,12 @@ def test_nd_system_vocabularies_equal_the_language():
     assert axes["operator"]["vocabulary"] == list(deontic.VALID_OPERATORS)
     assert axes["incident"]["vocabulary"] == list(deontic.INCIDENTS)
     # every statement field is an axis, and every binding rule names a declared axis.
-    # exception_status is the one axis with no statement-schema field of its own:
-    # it is a claim-level coordinate claim_for computes from `exception` (a pure
-    # function of that text, published so it always accompanies the operator —
-    # see deontic.plane.read_polarity), not a primitive :func:`project` carries.
-    assert set(deontic.project(deontic.parse("O(a : b)"))) | {"exception_status"} == set(axes)
+    # exception_status is also a claim-level coordinate claim_for recomputes
+    # straight from `exception` (a pure function of that text, published so it
+    # always accompanies the operator — see deontic.plane.read_polarity), so a
+    # claim's own exception_status agrees with `statement["exception_status"]`
+    # even for a caller that built the statement dict directly.
+    assert set(deontic.project(deontic.parse("O(a : b)"))) == set(axes)
     for rule in dplane.nd_system()["bindings"]:
         assert set(rule["allowed_axes"]) <= set(axes)
 
@@ -221,7 +222,8 @@ def test_prose_abstains_on_non_agentive_expletive_and_adverbial(sentence):
 
 def test_credit_case_normative_outputs_are_pinned_literally():
     got = {k: [c["statement"] for c in dplane.produce(CREDIT[k])] for k in ("s3", "s4", "s6")}
-    blank = {"exception": "", "negated": False, "incident": "", "counterparty": ""}
+    blank = {"exception": "", "exception_status": "none_detected",
+             "negated": False, "incident": "", "counterparty": ""}
     assert got == {
         "s3": [{"operator": "F", "bearer": "controller",
                 "action": "make a solely automated decision on a credit application",

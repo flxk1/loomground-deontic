@@ -105,6 +105,70 @@
   `tests/test_prose_negation_adverbs.py::test_negation_adverb_variants_lower_to_prohibition`,
   `tests/test_prose_negation_adverbs.py::test_must_not_shall_not_and_positive_modals_are_unchanged`.
 
+* **deontic:** verifier round, findings L121/L122/COVERAGE on the Phase 1
+  prose grammar. **L121 (negation):** `deontic.prose_grammar.analyze` now
+  counts negation from every source a sentence can carry it in together —
+  the adverb/negating-interposed run it already counted, plus a negative
+  determiner on the subject ("No processor ...") and a modal phrase that
+  itself already lexicalises a negated modal ("is prohibited from", "is not
+  permitted to" — any `modal_lexemes.json` entry with the new `"negates":
+  true`) — and the polarity check now runs *before* any forced-operator
+  dispatch. Two or more negators from any combination of sources abstain
+  `AMBIGUOUS_NEGATION`, never collapse to an operator: "The processor is
+  prohibited from not disclosing the data.", "The controller is not
+  permitted to not disclose the data.", and "No processor shall never
+  disclose the data." all now abstain (previously two of the three silently
+  dispatched to an operator). `modal_lexemes.json` also gained a forced-`P`
+  phrase ("is authorised to", mirrored into `extraction.json`'s permission
+  cue) so the fix's coverage spans forced-F, forced-P, and plain-modal
+  phrasing alike. Tests: `tests/test_negation_matrix.py` (a 3×3×3 matrix over
+  {forced-F, forced-P, plain modal} × {0, 1, 2 negators} × {adverb,
+  determiner, lexical source}, plus the three fixtures above named
+  individually).
+* **deontic:** verifier round, **L122 (binding)** — `nd-system.json`'s
+  `statement.exception_status` binding now resolves: `exception_status` is a
+  real property of `artifacts/schema/statement.schema.json`, and
+  `deontic.grammar.project` emits it (from the formula's own
+  `exception_status` when set, else computed fresh from `exception` via
+  `deontic.prose_grammar.classify_exception_status` — the same pure function
+  `deontic.plane.claim_for` already used for its own coordinate, so the two
+  never drift). Every published conformance vector's `expected.json` /
+  `artifacts/conformance/prose.json` entry gained the field. Test:
+  `tests/test_binding_slots_resolve.py` (resolves every shipped binding;
+  fails on an injected bogus `form_slot` or an unreasoned `null` one).
+* **deontic:** verifier round, **COVERAGE** — abstention in
+  `deontic.prose_grammar.analyze` is now **per field** (`operator`/modality,
+  `bearer`, `action`, `action_head`, `exception_status`), published on the new
+  `ProseFrame.field_reasons` map: a sentence with a clear modal now yields a
+  modality even when its bearer or its action cannot be grounded (each
+  unresolved field carries its own typed reason instead of the whole sentence
+  collapsing to one guess). `ProseFrame.accepted`/`.reason` keep their
+  pre-existing whole-frame meaning (`True` only when operator, bearer, and
+  action all resolved — the three fields a `DeonticFormula` requires) for
+  every existing caller (`deontic.prose`, `deontic.ledger`); a caller that
+  wants every field's own outcome reads `field_reasons` directly, always
+  populated. New output field **`action_head`**: the action's governing verb
+  lemma (stdlib rule-based, deterministic — `artifacts/gazetteer/
+  verb_lemma.json`'s surface-form exceptions table plus a regular-suffix
+  fallback; never a verb inside a subordinate complement — "ensure that the
+  data is disclosed" heads on "ensure", never "disclosed"), published
+  alongside the unchanged full-span `action`; it abstains into
+  `field_reasons["action_head"]` (`ACTION_HEAD_INDETERMINATE`, or the
+  `action` field's own reason when `action` itself abstained) rather than
+  guess. `action_head` is a `ProseFrame`/ledger-record field, not a
+  `statement.schema.json`/`nd-system.json` axis — the deontic language's
+  5D-facing surface is unchanged; only the prose producer's own richer
+  reader grew. Tests: `tests/test_action_head.py` (per-field coverage plus
+  `action_head` over 12 distinct constructions, including a phrasal
+  complement, a causative passive, a forced-F/forced-P modal phrase, and a
+  bare-passive abstention).
+* **deontic:** `artifacts/gazetteer/exception.json`'s `xref_markers` gained
+  `"chapter"` — "under Chapter II" is as much an unresolved cross-reference as
+  "under Article 6" or "under Annex I"; surfaced by the dev-set precision
+  report over real (non-GDPR/AI-Act/DSA) EU legislative text
+  (`scratchpad/p3/dev/`, not shipped) rather than by a unit fixture. Test:
+  `tests/test_action_head.py::test_chapter_is_an_xref_marker`.
+
 ## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)
 
 
