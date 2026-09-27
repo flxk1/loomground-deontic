@@ -71,7 +71,10 @@ from .artifacts import (
 )
 from .conformance import Vector, ConformanceReport, iter_vectors, run_conformance
 from .protocol import DeonticImplementation
-from .prose import extract as extract_prose
+from .prose import extract as extract_prose, parse as parse_prose
+from .plane import PolarityView, read_polarity
+from . import prose_grammar
+from . import ledger
 
 __all__ = [
     "__version__",
@@ -110,5 +113,7 @@ __all__ = [
     # protocol
     "DeonticImplementation",
     # prose lowering (the plane producer's reader)
-    "extract_prose",
+    "extract_prose", "parse_prose", "prose_grammar", "ledger",
+    # typed polarity reader (never bare O/P/F without its exception status)
+    "PolarityView", "read_polarity",
 ]

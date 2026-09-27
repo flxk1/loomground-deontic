@@ -36,15 +36,17 @@ from __future__ import annotations
 
 import copy
 import re
+from dataclasses import dataclass
 from typing import Any
 
 from .artifacts import artifact_path, language_version, load_json
 from .formula import DeonticFormula
 from .grammar import DeonticSyntaxError, parse, project
 from . import prose
+from . import prose_grammar
 
 __all__ = ["PLANE_ID", "plane", "produce", "nd_system", "binding", "examples",
-           "claim_for", "METHOD_PARSE", "METHOD_PROSE"]
+           "claim_for", "METHOD_PARSE", "METHOD_PROSE", "PolarityView", "read_polarity"]
 
 PLANE_ID = "deontic"
 METHOD_PARSE = "deontic-parse"
@@ -124,6 +126,13 @@ def claim_for(sentence: str, statement: dict[str, Any], method: str) -> dict[str
             coords[field] = value
             slots[slot] = field
     coords["negated"] = bool(statement.get("negated", False))
+    # exception_status sits on the coordinate next to the operator — a norm's
+    # polarity is never published without it (see read_polarity below). Pure
+    # function of the exception text, so it agrees whether the claim came from
+    # produce() or from a published conformance vector's own expected shape.
+    coords["exception_status"] = prose_grammar.classify_exception_status(
+        statement.get("exception", ""))
+    slots["statement.exception_status"] = "exception_status"
     spans: dict[str, Any] = {}
     content_span = _span(sentence, statement.get("action", ""))
     if content_span is not None:
@@ -140,6 +149,37 @@ def claim_for(sentence: str, statement: dict[str, Any], method: str) -> dict[str
         "statement": dict(statement),
         "spans": spans,
     }
+
+
+@dataclass(frozen=True)
+class PolarityView:
+    """A norm's polarity, read back with its exception status attached.
+
+    The typed reader (:func:`read_polarity`) is the only public way to read a
+    claim's operator: it always returns ``exception_status`` alongside it, so
+    a consumer cannot take the O/P/F polarity of a norm that carries a
+    detected-but-unresolved exception without also seeing that the exception
+    exists (``exception_status`` is one of
+    :data:`deontic.prose_grammar.EXCEPTION_STATUSES`). This is a value object
+    — comparable and hashable, not a bare tuple a caller could destructure and
+    silently drop half of.
+    """
+
+    operator: str
+    exception_status: str
+
+
+def read_polarity(claim: dict[str, Any]) -> PolarityView:
+    """The typed reader over one :func:`produce`/:func:`claim_for` claim.
+
+    Returns operator and exception_status together, always — never bare
+    polarity. Raises ``KeyError`` if ``claim`` is not a claim this plane built
+    (i.e. it lacks ``coordinates.operator`` or ``coordinates.exception_status``);
+    that is a caller error, not a case to guess through.
+    """
+    coords = claim["coordinates"]
+    return PolarityView(operator=coords["operator"],
+                        exception_status=coords["exception_status"])
 
 
 def _formulae(sentence: str) -> tuple[list[DeonticFormula], str]:

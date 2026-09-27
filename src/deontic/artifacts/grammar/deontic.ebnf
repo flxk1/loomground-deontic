@@ -28,3 +28,62 @@ action      = text ;
  * ends is not significant. A bearer or action that must contain a delimiter is
  * out of scope for the canonical surface and belongs to the structured fields. *)
 text        = ? one or more characters, not a structural delimiter ? ;
+
+(*
+ * Phase 1 prose grammar (deontic.prose_grammar). Reads plain English prose,
+ * not the canonical statement above, to the same (operator, bearer, action,
+ * condition, exception) shape. Compiled to a stdlib recursive-descent parser
+ * kept in sync with this production; every language-specific surface it
+ * matches (modal lexemes, interposed phrases, negation adverbs, condition and
+ * exception leads, the exception content markers) is a JSON gazetteer under
+ * artifacts/gazetteer/, not a literal in the parser or in this grammar.
+ *
+ * prose_statement = [ condition_lead ] , modal_frame , [ exception_lead ] ;
+ *
+ * condition_lead and exception_lead are SIBLING constituents of modal_frame,
+ * never nested inside it: a condition opens the sentence and an exception
+ * closes it, but neither is part of the subject/modal_head/action walk.
+ *
+ * modal_frame  = subject , modal_head , interposed* , negation? , action ;
+ *
+ * subject      = text ;                    (* before modal_head *)
+ * modal_head   = ? a phrase in gazetteer/modal_lexemes.json ? ;
+ * interposed   = ? a phrase in gazetteer/interposed.json ?
+ *              | "," ;                     (* a comma delimiting one *)
+ * negation     = ? a word in gazetteer/negation.json ? ;
+ * action       = text ;                    (* after interposed*/negation?,
+ *                                             up to exception_lead or end *)
+ *
+ * The operator is not read off the surface directly: modal_head resolves to
+ * one of the three canonical lexemes {shall, must, may} (gazetteer-mapped),
+ * and (lexeme, negated) dispatches through the single truth table
+ * deontic.prose_grammar._NEGATED_MODAL to O/P/F. `negated` is true when
+ * negation? matched, OR when an interposed phrase itself carries a negating
+ * flag ("at no time"; "at any time"/"under any circumstances" do not) —
+ * interposed* and negation? are read as one mixed, order-free run between
+ * modal_head and action, since attested surfaces put the negation adverb
+ * before an interposed phrase ("shall never, under any circumstances,") as
+ * often as after it ("shall, at no time,").
+ *
+ * condition_lead  = ( "if" | "where" | "when" | "provided that" ) , text , "," ;
+ * exception_lead  = ( "unless" | "save as" | "subject to"
+ *                    | "without prejudice to" | "except where"
+ *                    | "in accordance with" ) , text ;
+ *
+ * An exception_lead match yields one of four published exception_status
+ * values (deontic.prose_grammar.EXCEPTION_STATUSES), classified from the
+ * clause's own content against gazetteer/exception.json's xref_markers and
+ * external_terms — never resolved to the thing it names:
+ *
+ *   none_detected                  no exception_lead matched
+ *   internal_parsed                matched; the clause names no external law
+ *                                   or cross-reference (its text is the norm)
+ *   EXCEPTION_XREF_UNRESOLVED      matched; the clause names an internal
+ *                                   cross-reference (e.g. "Article 6(2)")
+ *   EXCEPTION_EXTERNAL_UNRESOLVED  matched; the clause points outside the
+ *                                   instrument (e.g. "required by law")
+ *
+ * exception_status is stored on the deontic coordinate next to the operator
+ * (deontic.plane.claim_for); deontic.plane.read_polarity is the typed reader
+ * that returns both together, so a consumer cannot read polarity without it.
+ *)

@@ -4,6 +4,40 @@
 
 ## [Unreleased]
 
+### Features
+
+* **deontic:** Phase 1 prose grammar — the regex "modal cue" walk in
+  `deontic.prose` is replaced by a stdlib-only, deterministic recursive-descent
+  parser (`deontic.prose_grammar`), compiled from and kept in sync with a new
+  `modal_frame` production appended to `artifacts/grammar/deontic.ebnf`:
+  `modal_frame = subject, modal_head, interposed*, negation?, action`, with
+  `condition`/`exception` as sibling constituents of the frame. Every
+  language-specific surface — modal lexemes, interposed material ("under any
+  circumstances", "at any time", "at no time"), negation adverbs, condition
+  and exception leads, and the exception content markers — is a JSON
+  gazetteer under the new `artifacts/gazetteer/` tree, not a literal in the
+  parser. The grammar's operator dispatch is one truth table,
+  `deontic.prose_grammar._NEGATED_MODAL` (`(lexeme, negated) -> O/P/F`).
+  `deontic.prose.extract` (and the public name `deontic.extract_prose`) keep
+  their pre-Phase-1 signature as a thin compatibility layer; `deontic.prose.parse`
+  is the new richer reader.
+* **deontic:** every field the prose grammar emits (operator, bearer, action,
+  condition, exception_status) carries a certainty in `{CERTAIN, INFERRED,
+  AMBIGUOUS}`; abstention is per field, with a typed reason code (at least
+  `ACTION_IMPLICIT`, `NO_MODAL`, `AMBIGUOUS_NEGATION`, `AMBIGUOUS_SUBJECT`,
+  `EXCEPTION_XREF_UNRESOLVED`, `EXCEPTION_EXTERNAL_UNRESOLVED`), written to a
+  new append-only JSONL ledger (`deontic.ledger`, opened `'a'` only — never
+  truncated or rewritten) with the invariant `accepted + abstained == input`.
+* **deontic:** exception detection ("unless", "save as", "subject to",
+  "without prejudice to", "except where", "in accordance with Article N") now
+  classifies the clause as `none_detected` / `internal_parsed` /
+  `EXCEPTION_XREF_UNRESOLVED` / `EXCEPTION_EXTERNAL_UNRESOLVED` — no
+  cross-reference resolver is built. The status is carried on the claim's
+  coordinate next to the operator (`deontic.plane.claim_for`); the new typed
+  reader `deontic.plane.read_polarity` / `deontic.read_polarity` returns
+  operator and exception_status together, so a consumer cannot read a norm's
+  polarity without its exception status.
+
 ### Bug Fixes
 
 * **deontic:** prose lowering — "shall never"/"must never"/"shall at no

@@ -1,0 +1,9 @@
+{
+  "describes": "Exception cues (exception_ in deontic.ebnf, a sibling constituent of modal_frame, never nested inside it) and the content markers that classify the exception clause once found. 'in accordance with Article N' and similar cross-references are deliberately NOT resolved (no resolver is built): xref_markers and external_terms only classify the clause as one of EXCEPTION_XREF_UNRESOLVED / EXCEPTION_EXTERNAL_UNRESOLVED / internal_parsed, matched by simple membership over the exception clause's words, never by a compiled pattern.",
+  "lead_phrases": [
+    "unless", "save as", "subject to", "without prejudice to",
+    "except where", "in accordance with"
+  ],
+  "xref_markers": ["article", "art.", "section", "sec.", "annex", "paragraph", "§"],
+  "external_terms": ["law", "statute", "regulation", "directive", "enactment"]
+}

@@ -1,0 +1,4 @@
+{
+  "describes": "Single-word negation adverbs the prose grammar's negation? production recognises immediately after a modal_head (with any interposed material already consumed). 'at no time' is NOT here: it is a multi-word interposed phrase (see interposed.json) carrying its own negating flag, matched by the interposed production instead.",
+  "adverbs": ["not", "never"]
+}
