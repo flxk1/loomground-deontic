@@ -32,6 +32,13 @@
       "default": "",
       "description": "Defeasibility carve-out; non-empty makes the norm defeasible."
     },
+    "exception_status": {
+      "type": "string",
+      "enum": ["", "none_detected", "internal_parsed",
+               "EXCEPTION_XREF_UNRESOLVED", "EXCEPTION_EXTERNAL_UNRESOLVED"],
+      "default": "",
+      "description": "The classification of `exception`'s own text (deontic.prose_grammar.classify_exception_status): whether an exception clause was detected at all, and — when one was — whether it resolved to local text or names an unresolved cross-reference / external law. '' only when the producer does not classify one (a formula built directly, bypassing prose/classify_exception_status); every prose-derived statement carries one of the four typed values, never bare."
+    },
     "negated": {
       "type": "boolean",
       "default": false,

@@ -4,6 +4,6 @@
     "unless", "except", "save where", "save as", "subject to",
     "without prejudice to", "except where", "in accordance with"
   ],
-  "xref_markers": ["article", "art.", "section", "sec.", "annex", "paragraph", "§"],
+  "xref_markers": ["article", "art.", "section", "sec.", "annex", "paragraph", "chapter", "§"],
   "external_terms": ["law", "statute", "regulation", "directive", "enactment"]
 }

@@ -4,6 +4,7 @@
   "action": "retain the record",
   "condition": "",
   "exception": "",
+  "exception_status": "none_detected",
   "negated": true,
   "incident": "",
   "counterparty": ""

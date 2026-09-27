@@ -9,7 +9,7 @@
   "modal_cues": [
     { "modal": "prohibition", "pattern": "\\b(?:shall not|must not|may not|(?:shall|must|may)(?:\\s*,\\s*|\\s+)(?:never|at\\s+no\\s+time)\\s*,?\\s*(?:[^,.;]+?,\\s*)?|is not permitted to|is prohibited from|darf\\s+\\w+\\s+nicht|darf nicht)\\b" },
     { "modal": "obligation", "pattern": "\\b(?:shall|must|is obliged to|is required to|has to|muss|m(?:ü|u)ssen|hat zu)\\b" },
-    { "modal": "permission", "pattern": "\\b(?:may|is permitted to|is free to|is entitled to|darf|kann)\\b" }
+    { "modal": "permission", "pattern": "\\b(?:may|is permitted to|is free to|is entitled to|is authorised to|darf|kann)\\b" }
   ],
   "slot_cues": {
     "condition_lead": "^\\s*(?:if|where|when|provided that|subject to|wenn|falls|sofern|soweit)\\b(?P<cond>.*?),",
