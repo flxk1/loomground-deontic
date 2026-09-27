@@ -1,0 +1,5 @@
+{
+  "describes": "Lead words/phrases that open a sentence-initial condition clause (condition_ in deontic.ebnf's statement production), up to the first top-level comma. Matched word-for-word at the token position, not by a pattern.",
+  "lead_phrases": ["if", "where", "when", "provided that"],
+  "tail_leads": ["before", "after", "until", "once", "provided that"]
+}

@@ -1,0 +1,13 @@
+{
+  "describes": "Surface English lexical tables the prose grammar needs to validate a subject and an action span. Not deontic vocabulary; word/phrase membership only, matched at token positions (never a compiled pattern).",
+  "determiners": ["the", "a", "an", "every", "each", "any", "all", "such", "this", "that"],
+  "negative_determiner": "no",
+  "clause_markers": ["that", "which", "who", "whom", "whose", "knows", "believes", "says", "said"],
+  "non_bearer_subjects": ["it", "there", "this", "that", "these", "those"],
+  "state_action_prefixes": [["be"], ["been"], ["being"], ["have", "been"], ["has", "been"]],
+  "clause_verbs": [
+    "is", "are", "was", "were", "be", "been", "has", "have", "had", "does", "do", "did",
+    "can", "could", "will", "would", "shall", "should", "may", "might", "must"
+  ],
+  "embedded_markers": ["that", "which", "whether", "who", "whom", "whose"]
+}
