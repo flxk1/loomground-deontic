@@ -23,7 +23,8 @@ loaded table, never a compiled pattern search.
 The single truth table the grammar dispatches into for the operator is
 :data:`_NEGATED_MODAL`: ``(lexeme, negated) -> operator``. Mutating one cell
 of that table changes the operator a matching sentence lowers to — the
-mutation the conformance suite exercises (``tests/test_prose_grammar.py``).
+mutation the conformance suite exercises (``tests/test_prose_grammar_dispatch.py``
+and ``tests/test_prose_grammar_phrases.py``).
 
 Every emitted field — operator, bearer, action, condition, exception_status —
 carries a certainty in ``{CERTAIN, INFERRED, AMBIGUOUS}`` (:data:`CERTAINTY`).
@@ -91,7 +92,10 @@ _NEGATED_MODAL: dict[tuple[str, bool], str] = {
 }
 
 # ── tokeniser: the ONLY regex in this module; used for tokenisation only ──
-_TOKEN_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]+|[,;:()]")
+# Digits are word tokens too (e.g. "Article 6"): a bare number embedded in a
+# condition/exception span must not fall out of the token stream and truncate
+# the slice that reconstructs the surface text.
+_TOKEN_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ0-9]+|[,;:()]")
 _TRAIL = " \t\r\n.;:!?,"
 _MAX_BEARER_WORDS = 6
 
@@ -267,12 +271,12 @@ def analyze(sentence: str) -> ProseFrame:
         m = _match_longest(tokens, i, modal_gaz)
         if m is not None:
             end, entry = m
-            found = (i, end, entry["lexeme"])
+            found = (i, end, entry["lexeme"], entry.get("operator"))
             break
     if found is None:
         return ProseFrame(accepted=False, reason=NO_MODAL,
                           certainty={"operator": AMBIGUOUS})
-    modal_start, modal_end, lexeme = found
+    modal_start, modal_end, lexeme, forced_operator = found
 
     subject = _slice(text, tokens, after_cond, modal_start)
 
@@ -302,6 +306,7 @@ def analyze(sentence: str) -> ProseFrame:
     negation_adverbs = set(_load_gazetteer("negation")["adverbs"])
     pos = modal_end
     negated = False
+    negation_count = 0
     saw_interposed = False
     while pos < frame_end:
         skip = _skip_delimiters(tokens, pos)
@@ -313,11 +318,13 @@ def analyze(sentence: str) -> ProseFrame:
             end, entry = m
             if entry.get("negating"):
                 negated = True
+                negation_count += 1
             saw_interposed = True
             pos = end
             continue
         if tokens[pos].is_word and tokens[pos].lower in negation_adverbs:
             negated = True
+            negation_count += 1
             pos += 1
             continue
         break
@@ -370,17 +377,37 @@ def analyze(sentence: str) -> ProseFrame:
         return ProseFrame(accepted=False, reason=AMBIGUOUS_SUBJECT,
                           certainty={"bearer": AMBIGUOUS})
 
-    operator = "F" if forced_prohibition else _NEGATED_MODAL.get((lexeme, negated))
+    # Two negation adverbs/negating-interposed-phrases in one frame ("shall
+    # never not disclose ...") do not cancel to an affirmative by convention
+    # here: the double negation is ambiguous on its face, so the whole frame
+    # abstains rather than collapsing to either polarity.
+    if negation_count >= 2:
+        return ProseFrame(accepted=False, reason=AMBIGUOUS_NEGATION,
+                          certainty={"operator": AMBIGUOUS})
+
+    if forced_prohibition:
+        operator = "F"
+    elif forced_operator:
+        operator = forced_operator
+    else:
+        operator = _NEGATED_MODAL.get((lexeme, negated))
     if operator is None:
         return ProseFrame(accepted=False, reason=AMBIGUOUS_NEGATION,
                           certainty={"operator": AMBIGUOUS})
 
     exception_status = classify_exception_status(exception)
+    # Certainty is computed, not a hard-coded constant: a field is CERTAIN only
+    # when its value came straight off a cue anchor (the subject immediately
+    # before the modal head; a condition matched by a sentence-initial lead
+    # phrase); a field reached by a weaker, non-anchoring route (the bearer
+    # after stripping a negative determiner that itself carried the semantics
+    # of the whole clause; a condition assembled from a trailing adverbial
+    # lead rather than a sentence-initial cue) is INFERRED instead.
     certainty = {
         "operator": CERTAIN,
-        "bearer": CERTAIN,
+        "bearer": INFERRED if forced_prohibition else CERTAIN,
         "action": CERTAIN,
-        "condition": CERTAIN if condition else CERTAIN,
+        "condition": INFERRED if tail_condition else CERTAIN,
         "exception_status": CERTAIN if exception_status in (NONE_DETECTED, INTERNAL_PARSED)
                             else AMBIGUOUS,
     }

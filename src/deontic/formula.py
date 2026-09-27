@@ -83,6 +83,16 @@ class DeonticFormula:
     ``incident`` (optional) is the Hohfeldian position from
     :mod:`deontic.incidents`; '' means unclassified.
 
+    ``exception_status`` travels next to ``exception``: whenever a producer
+    detects an exception clause it carries the classification alongside the
+    bare text (one of :data:`deontic.prose_grammar.EXCEPTION_STATUSES`, or
+    ``''`` when the producer does not classify one). A reader of this formula
+    — this is a public surface, unlike :func:`deontic.plane.read_polarity`,
+    which is the typed reader over a *claim* — must not report ``operator``
+    as if it were unconditional without also carrying this field: an
+    exception detected but left unresolved (a cross-reference, an external
+    law) still qualifies the norm's bare polarity.
+
     ``deadline``/``cross_references``/``sanction`` are **optional, additive** carry
     fields — the time by which the norm bites, the instruments it points to, and
     the consequence attached to breach — kept as **opaque text** so a downstream
@@ -100,6 +110,7 @@ class DeonticFormula:
     action: str
     condition: str = ""
     exception: str = ""
+    exception_status: str = ""
     negated: bool = False
     incident: str = ""
     counterparty: str = ""
@@ -170,6 +181,7 @@ def formula_from_fields(
     *,
     condition: str = "",
     exception: str = "",
+    exception_status: str = "",
     incident: str = "",
     counterparty: str = "",
     deadline: str = "",
@@ -190,6 +202,11 @@ def formula_from_fields(
     become ``"(unspecified)"`` so :func:`is_grounded` can tell a placeholder from
     a real bearer.
 
+    ``exception_status`` is the caller's classification of ``exception`` (e.g.
+    :func:`deontic.prose_grammar.classify_exception_status`'s result); carried
+    unchanged, never recomputed here, so a caller that already ran that
+    classification does not pay for it twice.
+
     ``deadline``/``cross_references``/``sanction`` are optional, additive carry
     fields (opaque text); omit them and the formula is identical to before.
     """
@@ -208,6 +225,7 @@ def formula_from_fields(
         action=action or _UNSPECIFIED,
         condition=condition,
         exception=exception,
+        exception_status=exception_status,
         negated=False,  # prohibition is carried by operator="F"
         incident=incident,
         counterparty=counterparty,

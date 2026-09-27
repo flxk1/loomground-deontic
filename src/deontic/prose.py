@@ -65,7 +65,9 @@ def extract(sentence: str) -> list[DeonticFormula]:
     Pure and deterministic. ``raw_sentence`` on the formula is the input
     unchanged. A thin compatibility layer over :func:`parse`/:mod:`deontic.prose_grammar`:
     kept for existing callers — the public name and signature are unchanged
-    from before Phase 1.
+    from before Phase 1. The returned formula's ``exception_status`` always
+    travels with its ``operator``: a norm whose exception is detected but not
+    resolved is never handed back as if it were bare, unqualified polarity.
     """
     frame = prose_grammar.analyze(sentence)
     if not frame.accepted:
@@ -75,5 +77,6 @@ def extract(sentence: str) -> list[DeonticFormula]:
     return [formula_from_fields(
         modal, frame.bearer, frame.action,
         condition=frame.condition, exception=frame.exception,
+        exception_status=frame.exception_status,
         language="en", raw_sentence=sentence,
     )]
