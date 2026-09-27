@@ -53,6 +53,7 @@ deontic = [
     "artifacts/grammar/*.ebnf",
     "artifacts/schema/*.json",
     "artifacts/vocabulary/*.json",
+    "artifacts/gazetteer/*.json",
     "artifacts/conformance/*.json",
     "artifacts/conformance/vectors/*/*",
 ]

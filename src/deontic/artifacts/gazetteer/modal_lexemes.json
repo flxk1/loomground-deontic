@@ -1,5 +1,5 @@
 {
-  "describes": "Modal-head phrases the prose grammar's modal_head production recognises, each mapped to one of the three canonical lexemes (shall/must/may) the truth table (_NEGATED_MODAL in deontic.prose_grammar) dispatches on. A data table, not a regex: the recursive-descent parser matches a phrase's words at a token position; it does not compile or search a pattern. Multi-word phrases are tried longest-first at each position. English only (Phase 1 scope).",
+  "describes": "Modal-head phrases the prose grammar's modal_head production recognises, each mapped to one of the three canonical lexemes (shall/must/may) the truth table (_NEGATED_MODAL in deontic.prose_grammar) dispatches on. A data table, not a regex: the recursive-descent parser matches a phrase's words at a token position; it does not compile or search a pattern. Multi-word phrases are tried longest-first at each position. An entry may also carry a literal 'operator' (F only, Phase 1 scope): the phrase itself already lexicalises a negated modal ('is prohibited from', 'is not permitted to'), so the grammar dispatches straight to that operator instead of through the lexeme/negation table. English only (Phase 1 scope).",
   "phrases": [
     { "phrase": "shall", "lexeme": "shall" },
     { "phrase": "must", "lexeme": "must" },
@@ -9,6 +9,8 @@
     { "phrase": "has to", "lexeme": "shall" },
     { "phrase": "is permitted to", "lexeme": "may" },
     { "phrase": "is free to", "lexeme": "may" },
-    { "phrase": "is entitled to", "lexeme": "may" }
+    { "phrase": "is entitled to", "lexeme": "may" },
+    { "phrase": "is prohibited from", "lexeme": "may", "operator": "F" },
+    { "phrase": "is not permitted to", "lexeme": "may", "operator": "F" }
   ]
 }

@@ -40,6 +40,47 @@
 
 ### Bug Fixes
 
+* **deontic:** verifier round on the Phase 1 prose grammar (commit 2c48861) —
+  `artifacts/gazetteer/exception.json` had dropped the "except"/"save where"
+  exception leads, so an exception clause fell into `action` instead of
+  `exception`; restored, plus "save as"/"without prejudice to" in
+  `extraction.json`'s published `exception_lead` cue. `artifacts/gazetteer/
+  modal_lexemes.json` gained "is prohibited from"/"is not permitted to" as
+  forced-`F` modal phrases (a phrase may now carry its own `operator`,
+  bypassing the lexeme/negation table). `artifacts/gazetteer/condition.json`
+  gained "subject to" as a sentence-initial condition lead ("Subject to
+  Article 6, the controller shall..." → `condition='Article 6'`,
+  `bearer='controller'`, not a bearer that swallows the lead clause). The
+  tokenizer (`deontic.prose_grammar._TOKEN_RE`) now tokenizes digits, so a
+  number inside a condition/exception span (`"Article 6"`) is not dropped
+  from the reconstructed surface text. Per-field certainty
+  (`deontic.prose_grammar.analyze`) is computed, not a hard-coded constant: a
+  bearer reached only by stripping the negative determiner "no" is `INFERRED`
+  (not `CERTAIN`); a condition assembled from a trailing adverbial
+  (`tail_leads`) is `INFERRED`, a sentence-initial condition lead is
+  `CERTAIN`. Two negation adverbs/negating-interposed-phrases in one frame
+  ("shall never not disclose...") now abstain `AMBIGUOUS_NEGATION` instead of
+  silently collapsing to F. `deontic.prose_grammar`'s module docstring cites
+  the real test files (`test_prose_grammar_dispatch.py` /
+  `test_prose_grammar_phrases.py`), not a nonexistent `test_prose_grammar.py`.
+  `extraction.json`'s `describes` field no longer claims `deontic.prose`
+  reads its cues at runtime (Phase 1 replaced that with the gazetteer-driven
+  `deontic.prose_grammar`); `tools/check_extraction.py` gained Gate F, which
+  holds every gazetteer-published cue equal to (covered by) `extraction.json`'s
+  regex, so the two published surfaces cannot drift apart again.
+  `deontic.formula.DeonticFormula` (and `formula_from_fields`) gained an
+  `exception_status` field, populated by `deontic.prose.extract` and
+  `deontic.grammar.parse`, so a bare `DeonticFormula` reader (not only
+  `deontic.plane.read_polarity`) never reports an operator without also
+  carrying whether an exception was detected. `pyproject.toml`'s
+  `package-data` gained `artifacts/gazetteer/*.json` — a built wheel was
+  missing the gazetteers the parser loads at import time. `nd-system.json`
+  gained a closed `exception_status` axis (`none_detected` /
+  `internal_parsed` / `EXCEPTION_XREF_UNRESOLVED` /
+  `EXCEPTION_EXTERNAL_UNRESOLVED`), matching the coordinate
+  `deontic.plane.claim_for` already publishes. Tests:
+  `tests/test_phase1_findings.py` (one test per point above).
+
 * **deontic:** prose lowering — "shall never"/"must never"/"shall at no
   time"/"must at no time" now lower to F (prohibition) with the negation token
   consumed by the matched cue, consistent with the existing "must not"/"shall

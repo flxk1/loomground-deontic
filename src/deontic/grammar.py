@@ -22,6 +22,7 @@ from typing import Any
 from .formula import DeonticFormula
 from .operators import VALID_OPERATORS
 from .incidents import INCIDENTS
+from .prose_grammar import classify_exception_status
 
 __all__ = ["DeonticSyntaxError", "parse", "validate", "project"]
 
@@ -84,6 +85,7 @@ def parse(source: str) -> DeonticFormula:
         action=action,
         condition=condition,
         exception=exception,
+        exception_status=classify_exception_status(exception),
         negated=negated,
     )
 

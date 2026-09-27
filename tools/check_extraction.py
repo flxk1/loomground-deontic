@@ -4,10 +4,18 @@
 
 `artifacts/extraction.json` is sufficient on its own for a generic consumer (the
 ingest plane) to lower free text into deontic deterministically without importing
-any deontic code. The package also ships a reference producer, `deontic.prose`,
-which reads these same published cues at runtime. Either way the data is only
-safe if the published cues cannot drift from the language they claim to describe.
-This gate proves they have not:
+any deontic code. The package's own reference producer, `deontic.prose`, does
+**not** read this file at runtime: Phase 1 replaced the regex walk with a
+stdlib recursive-descent parser (`deontic.prose_grammar`) driven by the JSON
+gazetteers under `artifacts/gazetteer/*.json`. The two surfaces are kept from
+drifting apart the same way as everything else this gate checks — by equality,
+not by one reading the other: Gate F below checks every gazetteer-published cue
+(modal phrases, negation adverbs, negating interposed phrases, condition
+leads/tails, exception leads) is still covered by this file's regex cues, so a
+consumer that only has `extraction.json` never falls behind what the package's
+own parser actually recognises. Either way the data is only safe if the
+published cues cannot drift from the language they claim to describe. This gate
+proves they have not:
 
   A. Incident cues — the power-verb and immunity regex sources equal the compiled
      sources in `deontic.incidents`.
@@ -28,6 +36,10 @@ This gate proves they have not:
   D. Regex validity — every published pattern compiles.
   E. Validity rules — every effect in `validity_rules` is carried by a cue and
      vice versa, and every non-abstaining incident names a real Hohfeld incident.
+  F. Gazetteer sync — every cue `deontic.prose_grammar` actually dispatches on
+     (read from `artifacts/gazetteer/*.json`, the parser's single source of
+     truth) is matched by this file's `modal_cues`/`slot_cues` regex, so the
+     two published surfaces cannot silently diverge.
 
 Run standalone: python3 tools/check_extraction.py [--artifact PATH]
 (`--artifact` checks another copy of extraction.json; the tests use it to prove
@@ -49,6 +61,7 @@ from deontic import incidents as di  # noqa: E402
 
 ARTIFACT = SRC / "deontic" / "artifacts" / "extraction.json"
 DIMENSIONS = SRC / "deontic" / "artifacts" / "vocabulary" / "dimensions.json"
+GAZETTEER_DIR = SRC / "deontic" / "artifacts" / "gazetteer"
 
 # Gate B's independent rule (Round 4, D1 reversed): ought carries no 5D
 # dimension. No dict anywhere in the published artifact may map an operator (or
@@ -180,12 +193,80 @@ def check_validity_rules(ex: dict | None = None) -> list[str]:
     return fails
 
 
+def _load_gazetteer(name: str) -> dict:
+    return json.loads((GAZETTEER_DIR / f"{name}.json").read_text(encoding="utf-8"))
+
+
+def check_gazetteer_sync(ex: dict | None = None) -> list[str]:
+    """Gate F: every cue the gazetteer-driven parser dispatches on is still
+    matched by this file's regex cues (see the module docstring, Gate F)."""
+    ex = EX if ex is None else ex
+    fails: list[str] = []
+    slot = ex["slot_cues"]
+    modal_patterns = {c["modal"]: c["pattern"] for c in ex["modal_cues"]}
+    lexeme_to_modal = {"shall": "obligation", "must": "obligation", "may": "permission"}
+
+    modal_gaz = _load_gazetteer("modal_lexemes")
+    for entry in modal_gaz["phrases"]:
+        phrase = entry["phrase"]
+        modal = "prohibition" if entry.get("operator") == "F" else lexeme_to_modal[entry["lexeme"]]
+        if not re.search(modal_patterns[modal], phrase, re.I):
+            fails.append(f"gazetteer modal phrase {phrase!r} (-> {modal}) not "
+                         f"covered by extraction.json modal_cues[{modal}]")
+
+    neg_gaz = _load_gazetteer("negation")
+    for adverb in neg_gaz["adverbs"]:
+        probe = f"shall {adverb} disclose"
+        if not re.search(modal_patterns["prohibition"], probe, re.I):
+            fails.append(f"gazetteer negation adverb {adverb!r} not covered by "
+                         "extraction.json modal_cues[prohibition]")
+
+    interposed_gaz = _load_gazetteer("interposed")
+    for entry in interposed_gaz["phrases"]:
+        if not entry.get("negating"):
+            continue
+        probe = f"shall {entry['phrase']} disclose"
+        if not re.search(modal_patterns["prohibition"], probe, re.I):
+            fails.append(f"gazetteer negating interposed phrase {entry['phrase']!r} "
+                         "not covered by extraction.json modal_cues[prohibition]")
+
+    cond_gaz = _load_gazetteer("condition")
+    for phrase in cond_gaz["lead_phrases"]:
+        probe = f"{phrase} X,"
+        if not re.search(slot["condition_lead"], probe, re.I):
+            fails.append(f"gazetteer condition lead {phrase!r} not covered by "
+                         "extraction.json slot_cues.condition_lead")
+    for phrase in cond_gaz["tail_leads"]:
+        probe = f" {phrase} it is sent"
+        if not re.search(slot["condition_tail"], probe, re.I):
+            fails.append(f"gazetteer condition tail lead {phrase!r} not covered by "
+                         "extraction.json slot_cues.condition_tail")
+
+    exc_gaz = _load_gazetteer("exception")
+    cross_ref = ex.get("cross_reference_cues", {}).get("instrument", "")
+    for phrase in exc_gaz["lead_phrases"]:
+        # A probe generic enough for every route a gazetteer exception lead may
+        # be covered by: exception_lead (any tail), condition_lead ('subject to'
+        # doubles as a sentence-initial condition lead — needs the trailing
+        # comma that production requires), or cross_reference_cues.instrument
+        # ('in accordance with' is published there, not as an exception cue).
+        covered = (re.search(slot["exception_lead"], f"{phrase} consent", re.I)
+                   or re.search(slot["condition_lead"], f"{phrase} X,", re.I)
+                   or (cross_ref and re.search(cross_ref, f"{phrase} Article 5", re.I)))
+        if not covered:
+            fails.append(f"gazetteer exception lead {phrase!r} not covered by any "
+                         "extraction.json slot cue (exception_lead/condition_lead/"
+                         "cross_reference_cues.instrument)")
+    return fails
+
+
 _CHECKS = (
     ("incident cues equal the language", check_incident_cues),
     ("operator mapping equals the language; no operator carries a 5D dimension", check_operator_mapping),
     ("incident rules reproduce classify_incident", check_incident_rules),
     ("every published pattern compiles", check_regex_validity),
     ("validity rules stay on the published incidents", check_validity_rules),
+    ("gazetteer cues are covered by the published extraction cues", check_gazetteer_sync),
 )
 
 
