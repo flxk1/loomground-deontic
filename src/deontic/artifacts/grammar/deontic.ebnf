@@ -51,8 +51,15 @@ text        = ? one or more characters, not a structural delimiter ? ;
  * interposed   = ? a phrase in gazetteer/interposed.json ?
  *              | "," ;                     (* a comma delimiting one *)
  * negation     = ? a word in gazetteer/negation.json ? ;
- * action       = text ;                    (* after interposed*/negation?,
+ * action       = scope_phrase , text        (* SCOPE_STATEMENT: constitutive *)
+ *              | text ;                    (* after interposed*/negation?,
  *                                             up to exception_lead or end *)
+ * scope_phrase = ? a phrase in gazetteer/scope_verbs.json ? ;
+ *
+ * An action that opens on a scope_phrase states what an instrument or
+ * provision covers, not a bearer's duty: operator, bearer, action and
+ * action_head abstain SCOPE_STATEMENT, and exception_lead is still read as
+ * usual (a scope_phrase that is itself an exception lead is not an exception).
  *
  * The operator is not read off the surface directly: modal_head resolves to
  * one of the three canonical lexemes {shall, must, may} (gazetteer-mapped),

@@ -451,19 +451,29 @@ def analyze(sentence: str) -> ProseFrame:
     # phrase; a scope match here always wins).
     scope_gaz = _load_gazetteer("scope_verbs")
     scope_ranked = _sorted_phrases([{"phrase": p} for p in scope_gaz["phrases"]])
-    if _match_longest(tokens, pos, scope_ranked) is not None:
+    scope_match = _match_longest(tokens, pos, scope_ranked)
+    if scope_match is not None:
+        scope_end = scope_match[0]
         reasons = {
             "operator": SCOPE_STATEMENT, "bearer": SCOPE_STATEMENT,
             "action": SCOPE_STATEMENT, "action_head": SCOPE_STATEMENT,
         }
+        # The exception scan above stays authoritative, except where the lead
+        # it matched is the scope phrase itself ("be without prejudice to"
+        # opening the scope verb): that span is the statement, not an exception.
+        scope_exception = "" if pos <= exc_start < scope_end else exception
+        scope_status = classify_exception_status(scope_exception)
+        if scope_status not in (NONE_DETECTED, INTERNAL_PARSED):
+            reasons["exception_status"] = scope_status
         return ProseFrame(
             accepted=False, reason=SCOPE_STATEMENT, operator="", modal_lexeme=lexeme,
             bearer="", action="", action_head="", condition=condition,
-            exception="", exception_status=NONE_DETECTED, negated=False,
+            exception=scope_exception, exception_status=scope_status, negated=False,
             certainty={
                 "operator": AMBIGUOUS, "bearer": AMBIGUOUS, "action": AMBIGUOUS,
                 "action_head": AMBIGUOUS, "condition": CERTAIN,
-                "exception_status": CERTAIN,
+                "exception_status": CERTAIN if scope_status in (NONE_DETECTED, INTERNAL_PARSED)
+                else AMBIGUOUS,
             },
             field_reasons=reasons,
         )

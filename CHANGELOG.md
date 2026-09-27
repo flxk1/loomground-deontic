@@ -210,7 +210,12 @@
   shall apply from 25 May 2018." all now abstain this way, in both their
   negated and positive forms; "The controller shall apply appropriate
   measures." (an ordinary duty — "apply" alone, not "apply to"/"apply from",
-  is not a scope verb) is unaffected and still yields `O` with a bearer. Test:
+  is not a scope verb) is unaffected and still yields `O` with a bearer. An
+  exception after the scope phrase is still detected and typed ("... shall not
+  apply to processing unless required by Union law." keeps
+  `EXCEPTION_EXTERNAL_UNRESOLVED`); only a scope phrase that is itself an
+  exception lead ("be without prejudice to") is not an exception. The
+  grammar's `action` production names the scope branch. Test:
   `tests/test_scope_statements.py`.
 
 ## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)

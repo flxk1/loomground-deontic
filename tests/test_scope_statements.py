@@ -42,6 +42,8 @@ def _assert_scope_statement(frame):
     "This Regulation shall not preclude Member State law.",
     "This Regulation shall preclude Member State law.",
     "This Regulation shall apply from 25 May 2018.",
+    "This Regulation shall not apply from 25 May 2018.",
+    "This Chapter shall not be without prejudice to the powers of supervisory authorities.",
 ])
 def test_scope_statement_patterns_negated_and_positive(sentence):
     frame = pg.analyze(sentence)
@@ -63,3 +65,31 @@ def test_ordinary_duty_control_still_yields_O_with_bearer():
 
 def test_scope_statement_is_a_typed_abstain_reason():
     assert pg.SCOPE_STATEMENT in pg.ABSTAIN_REASONS
+
+
+# ── a scope statement keeps the exception the sibling-constituent scan found;
+#    only the scope phrase itself ("be without prejudice to") is not one ──────
+@pytest.mark.parametrize("sentence,status,exception", [
+    ("This Regulation shall not apply to processing unless required by Union law.",
+     pg.EXCEPTION_EXTERNAL_UNRESOLVED, "required by Union law"),
+    ("This Regulation shall not apply to processing, without prejudice to Article 6(2).",
+     pg.EXCEPTION_XREF_UNRESOLVED, "Article 6(2)"),
+])
+def test_scope_statement_keeps_a_detected_exception(sentence, status, exception):
+    frame = pg.analyze(sentence)
+    _assert_scope_statement(frame)
+    assert frame.exception_status == status
+    assert frame.exception == exception
+    assert frame.certainty["exception_status"] == pg.AMBIGUOUS
+    assert frame.field_reasons.get("exception_status") == status
+
+
+@pytest.mark.parametrize("sentence", [
+    "This Chapter shall be without prejudice to the powers of supervisory authorities.",
+    "This Regulation shall not apply to processing.",
+])
+def test_scope_phrase_itself_is_not_an_exception(sentence):
+    frame = pg.analyze(sentence)
+    _assert_scope_statement(frame)
+    assert frame.exception_status == pg.NONE_DETECTED
+    assert frame.exception == ""
