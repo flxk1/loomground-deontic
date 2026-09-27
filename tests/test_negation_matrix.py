@@ -128,3 +128,82 @@ def test_l121_fixtures_abstain(sentence):
     assert frame.reason == pg.AMBIGUOUS_NEGATION
     assert frame.field_reasons.get("operator") == pg.AMBIGUOUS_NEGATION
     assert frame.operator == ""
+
+
+# ── L128: negative-quantifier and coordinated-negation subjects/actions ────
+# "none of", "neither" (subject-position coordination), "nobody", "no one"
+# force F exactly like "no" does but abstain the bearer (unresolved
+# quantifier/coordination — negation.json's subject_leads); "neither ... nor"
+# after the modal (a coordinated action) negates via negation.json's
+# coordinated_negators, consumed by the negation? production same as an
+# 'adverbs' entry — never surfacing as the action_head. See
+# tests/test_neither_none_of.py for the full matrix; these rows extend the
+# negation matrix's own operator-dispatch coverage.
+_L128_ROWS: dict[str, str] = {
+    "None of the processors shall disclose the data.": "F",
+    "Neither the controller nor the processor shall disclose the data.": "F",
+    "The processor shall neither disclose nor sell the data.": "F",
+    "Nobody shall disclose the data.": "F",
+    "No one shall disclose the data.": "F",
+}
+
+
+@pytest.mark.parametrize("sentence,expected_operator", sorted(_L128_ROWS.items()))
+def test_l128_negative_quantifier_and_coordination_rows(sentence, expected_operator):
+    frame = pg.analyze(sentence)
+    assert frame.operator == expected_operator, (sentence, frame)
+    assert "operator" not in frame.field_reasons, (sentence, frame)
+    assert frame.action_head != "neither", (sentence, frame)
+    assert frame.action_head != "none", (sentence, frame)
+    assert frame.action_head != "nobody", (sentence, frame)
+
+
+# ── closed-class stoplist: action_head is never a function word, over the
+#    full negation matrix (this module) plus every L128 row above ──────────
+def test_action_head_never_in_the_closed_class_stoplist_over_full_matrix():
+    from deontic.artifacts import load_json
+
+    stoplist = set(w.lower() for w in load_json("gazetteer", "function_words.json")["stoplist"])
+    all_sentences = list(_SENTENCES.values()) + list(_L128_ROWS)
+    for sentence in all_sentences:
+        frame = pg.analyze(sentence)
+        if frame.action_head:
+            assert frame.action_head.lower() not in stoplist, (sentence, frame.action_head)
+
+
+# Every sentence this round's two other new test modules introduce
+# (tests/test_neither_none_of.py, tests/test_scope_statements.py) — kept as a
+# literal list here (not a cross-module import: tests/ ships no __init__.py,
+# so import identity across test modules is not guaranteed stable) so the
+# stoplist invariant below covers them too, not just this module's own matrix.
+_NEW_TEST_SENTENCES = [
+    "None of the processors shall disclose the data.",
+    "None of the controllers shall retain the record.",
+    "Neither the controller nor the processor shall disclose the data.",
+    "Neither the lender nor the borrower shall disclose the data.",
+    "The processor shall neither disclose nor sell the data.",
+    "Nobody shall disclose the data.",
+    "No one shall disclose the data.",
+    "No processor shall retain the record.",
+    "This Regulation shall not apply to processing carried out by a natural person.",
+    "This Regulation shall apply to processing carried out by a controller.",
+    "This Article shall not affect the application of Regulation (EU) 2016/679.",
+    "This Article shall affect the application of Regulation (EU) 2016/679.",
+    "This Chapter shall be without prejudice to the powers of supervisory authorities.",
+    "This Regulation shall not preclude Member State law.",
+    "This Regulation shall preclude Member State law.",
+    "This Regulation shall apply from 25 May 2018.",
+    "The controller shall apply appropriate measures.",
+]
+
+
+def test_action_head_never_in_the_stoplist_over_every_new_test_sentence():
+    """The same stoplist invariant, over every sentence introduced by this
+    round's other new test modules — not just this module's own matrix."""
+    from deontic.artifacts import load_json
+
+    stoplist = set(w.lower() for w in load_json("gazetteer", "function_words.json")["stoplist"])
+    for sentence in _NEW_TEST_SENTENCES:
+        frame = pg.analyze(sentence)
+        if frame.action_head:
+            assert frame.action_head.lower() not in stoplist, (sentence, frame.action_head)

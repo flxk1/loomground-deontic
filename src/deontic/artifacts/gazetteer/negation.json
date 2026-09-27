@@ -1,4 +1,11 @@
 {
-  "describes": "Single-word negation adverbs the prose grammar's negation? production recognises immediately after a modal_head (with any interposed material already consumed). 'at no time' is NOT here: it is a multi-word interposed phrase (see interposed.json) carrying its own negating flag, matched by the interposed production instead.",
-  "adverbs": ["not", "never"]
+  "describes": "Single-word negation adverbs the prose grammar's negation? production recognises immediately after a modal_head (with any interposed material already consumed). 'at no time' is NOT here: it is a multi-word interposed phrase (see interposed.json) carrying its own negating flag, matched by the interposed production instead. 'coordinated_negators' is a second, deliberately separate single-word negator list: 'neither' opening a coordinated action ('The processor shall neither disclose nor sell the data.') negates the frame exactly like an 'adverbs' entry does, but is kept out of 'adverbs' itself so it is not swept into tools/check_extraction.py's Gate F sync probe (extraction.json's published prohibition cue does not need to change for a coordination construct it never claimed to cover) — deontic.prose_grammar.analyze merges both sets when it walks the negation? production. 'subject_leads' is the negative-quantifier surface a subject can open with instead of a plain 'no' (lexicon.json's negative_determiner, unchanged): 'none of', 'neither' (the 'Neither X nor Y ...' coordination), 'nobody', 'no one'. Each forces the frame to F exactly like 'No X ...' does, but — unlike 'No X ...', which strips 'no' and keeps the remaining noun phrase as the bearer — none of these identifies a single resolvable bearer (a quantified set, an unresolved two-way coordination, or a subject with no remaining noun phrase at all), so the bearer field abstains (AMBIGUOUS_SUBJECT) rather than guess one side of a coordination or a quantified set as if it were the bearer.",
+  "adverbs": ["not", "never"],
+  "coordinated_negators": ["neither"],
+  "subject_leads": [
+    { "phrase": "none of" },
+    { "phrase": "neither" },
+    { "phrase": "nobody" },
+    { "phrase": "no one" }
+  ]
 }

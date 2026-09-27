@@ -164,10 +164,54 @@
   bare-passive abstention).
 * **deontic:** `artifacts/gazetteer/exception.json`'s `xref_markers` gained
   `"chapter"` — "under Chapter II" is as much an unresolved cross-reference as
-  "under Article 6" or "under Annex I"; surfaced by the dev-set precision
-  report over real (non-GDPR/AI-Act/DSA) EU legislative text
-  (`scratchpad/p3/dev/`, not shipped) rather than by a unit fixture. Test:
+  "under Article 6" or "under Annex I". Test:
   `tests/test_action_head.py::test_chapter_is_an_xref_marker`.
+* **deontic:** verifier round, **L128 (negative-quantifier subjects and
+  coordinated negation)** — a subject opening with "none of", "neither" (the
+  "Neither X nor Y ..." coordination), "nobody", or "no one"
+  (`artifacts/gazetteer/negation.json`'s new `subject_leads`, checked ahead of
+  `lexicon.json`'s single-word `negative_determiner`) now forces the frame to
+  F exactly like a bare "no" does — but, unlike "No X ...", none of these
+  names one resolvable noun phrase, so `bearer` abstains
+  (`AMBIGUOUS_SUBJECT`) rather than guess one side of an unresolved
+  coordination or a quantified set as if it were the bearer:
+  "None of the processors shall disclose the data." and "Neither the
+  controller nor the processor shall disclose the data." now both lower to
+  `F` with an abstained bearer, never a guessed one. A coordinated action
+  ("The processor shall neither disclose nor sell the data.") is a second,
+  orthogonal fix: "neither" there is now recognised by the `negation?`
+  production too (`negation.json`'s new `coordinated_negators`, merged with
+  `adverbs` at the point `deontic.prose_grammar.analyze` walks that
+  production — deliberately kept out of `adverbs` itself so
+  `tools/check_extraction.py`'s Gate F sync probe, which reads `adverbs`
+  against `extraction.json`'s published prohibition cue, is unaffected),
+  consumed before `action` opens — `action_head` resolves to `disclose`, the
+  first coordinated verb, never the coordinator word "neither" itself. A new
+  closed-class stoplist, `artifacts/gazetteer/function_words.json`, is now
+  consulted by `deontic.prose_grammar._action_head` as a defensive backstop:
+  a resolved lemma that lands in the stoplist (a determiner, negator,
+  coordinator, copula, or preposition) abstains `ACTION_HEAD_INDETERMINATE`
+  rather than publish it as if it were a governing verb. Tests:
+  `tests/test_neither_none_of.py`; `tests/test_negation_matrix.py` gained the
+  L128 rows plus two stoplist-invariant tests (over the full negation matrix,
+  and over every sentence this round's new test modules introduce).
+* **deontic:** verifier round, **scope/effect (constitutive) statements** — a
+  sentence whose action opens on a scope/effect verb phrase about an
+  instrument or provision ("apply to", "apply from", "affect", "preclude",
+  "be without prejudice to" — the new `artifacts/gazetteer/scope_verbs.json`,
+  the sole source of this list) now abstains the whole frame
+  (`SCOPE_STATEMENT`, a new typed reason in `ABSTAIN_REASONS`): no operator,
+  no bearer, no action_head — the sentence states what the instrument does or
+  covers, not a bearer's duty. "This Regulation shall not apply to
+  processing carried out by a natural person.", "This Article shall [not]
+  affect the application of Regulation (EU) 2016/679.", "This Chapter shall
+  be without prejudice to the powers of supervisory authorities.", "This
+  Regulation shall [not] preclude Member State law.", and "This Regulation
+  shall apply from 25 May 2018." all now abstain this way, in both their
+  negated and positive forms; "The controller shall apply appropriate
+  measures." (an ordinary duty — "apply" alone, not "apply to"/"apply from",
+  is not a scope verb) is unaffected and still yields `O` with a bearer. Test:
+  `tests/test_scope_statements.py`.
 
 ## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)
 

@@ -52,7 +52,7 @@ __all__ = [
     "ACTION_IMPLICIT", "NO_MODAL", "AMBIGUOUS_NEGATION", "AMBIGUOUS_SUBJECT",
     "ACTION_HEAD_INDETERMINATE",
     "EXCEPTION_XREF_UNRESOLVED", "EXCEPTION_EXTERNAL_UNRESOLVED",
-    "CONDITION_ADVERBIAL_AMBIGUOUS", "ABSTAIN_REASONS",
+    "CONDITION_ADVERBIAL_AMBIGUOUS", "SCOPE_STATEMENT", "ABSTAIN_REASONS",
     "NONE_DETECTED", "INTERNAL_PARSED", "EXCEPTION_STATUSES",
     "ProseFrame", "analyze", "classify_exception_status",
 ]
@@ -72,10 +72,11 @@ EXCEPTION_XREF_UNRESOLVED = "EXCEPTION_XREF_UNRESOLVED"
 EXCEPTION_EXTERNAL_UNRESOLVED = "EXCEPTION_EXTERNAL_UNRESOLVED"
 CONDITION_ADVERBIAL_AMBIGUOUS = "CONDITION_ADVERBIAL_AMBIGUOUS"
 ACTION_HEAD_INDETERMINATE = "ACTION_HEAD_INDETERMINATE"
+SCOPE_STATEMENT = "SCOPE_STATEMENT"
 ABSTAIN_REASONS = frozenset({
     ACTION_IMPLICIT, NO_MODAL, AMBIGUOUS_NEGATION, AMBIGUOUS_SUBJECT,
     EXCEPTION_XREF_UNRESOLVED, EXCEPTION_EXTERNAL_UNRESOLVED,
-    CONDITION_ADVERBIAL_AMBIGUOUS, ACTION_HEAD_INDETERMINATE,
+    CONDITION_ADVERBIAL_AMBIGUOUS, ACTION_HEAD_INDETERMINATE, SCOPE_STATEMENT,
 })
 
 # ── exception_status vocabulary (stored on the deontic coordinate, next to
@@ -279,10 +280,17 @@ def _action_head(action_text: str) -> tuple[str, str]:
     that the data is disclosed``, is never the head: the production never
     walks into the complement). A two-word phrasal lead ("carries out",
     "sets out") is tried before the single word. Returns ``("", reason)``
-    when no word token opens the (possibly adverb-trimmed) span."""
+    when no word token opens the (possibly adverb-trimmed) span, or when the
+    resolved lemma is itself a closed-class function word
+    (``function_words.json``'s ``stoplist``) — a defensive backstop, kept
+    independent of the grammar productions that are meant to keep such a word
+    from ever opening the action span in the first place: this fallback never
+    publishes a determiner/negator/coordinator/copula as if it were a
+    governing verb."""
     gaz = _load_gazetteer("verb_lemma")
     skip = set(w.lower() for w in gaz["skip_leading"])
     exceptions = gaz["lemma_exceptions"]
+    stoplist = set(w.lower() for w in _load_gazetteer("function_words")["stoplist"])
     words = [w for w in re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ]+", action_text)]
     i = 0
     while i < len(words) and words[i].lower() in skip:
@@ -292,11 +300,13 @@ def _action_head(action_text: str) -> tuple[str, str]:
     if i + 1 < len(words):
         two = f"{words[i].lower()} {words[i + 1].lower()}"
         if two in exceptions:
-            return exceptions[two], ""
+            lemma = exceptions[two]
+            return ("", ACTION_HEAD_INDETERMINATE) if lemma in stoplist else (lemma, "")
     head = words[i].lower()
-    if head in exceptions:
-        return exceptions[head], ""
-    return _suffix_lemma(head), ""
+    lemma = exceptions[head] if head in exceptions else _suffix_lemma(head)
+    if lemma in stoplist:
+        return "", ACTION_HEAD_INDETERMINATE
+    return lemma, ""
 
 
 def _find_condition_lead(text: str, tokens: list[Token]) -> tuple[str, int]:
@@ -397,7 +407,12 @@ def analyze(sentence: str) -> ProseFrame:
     # order the surface holds them; the loop stops at the first token that
     # matches neither (that token opens `action`).
     interposed_gaz = _sorted_phrases(_load_gazetteer("interposed")["phrases"])
-    negation_adverbs = set(_load_gazetteer("negation")["adverbs"])
+    negation_gaz = _load_gazetteer("negation")
+    # 'adverbs' (Gate F's sync probe, tools/check_extraction.py, covers this
+    # key against extraction.json) plus 'coordinated_negators' ("neither"
+    # opening "neither disclose nor sell ..."), kept as a separate gazetteer
+    # key on purpose — see negation.json's describes field.
+    negation_adverbs = set(negation_gaz["adverbs"]) | set(negation_gaz.get("coordinated_negators", []))
     pos = modal_end
     negated = False
     negation_count = 0
@@ -422,6 +437,36 @@ def analyze(sentence: str) -> ProseFrame:
             pos += 1
             continue
         break
+
+    # Scope/effect statement (constitutive, not a duty): a scope verb phrase
+    # ("apply to", "apply from", "affect", "preclude", "be without prejudice
+    # to" — artifacts/gazetteer/scope_verbs.json, the sole source of this
+    # list) opening exactly where `action` would otherwise start. Such a
+    # sentence states what an instrument/provision does or covers, not a
+    # bearer's duty: operator, bearer, action and action_head all abstain
+    # SCOPE_STATEMENT rather than lower the subject/verb surface into a
+    # (misleading) O/F claim. Checked directly against the token stream at
+    # `pos`, independent of whatever the exception-lead scan already did to
+    # `frame_end` ("be without prejudice to" is also an exception.json lead
+    # phrase; a scope match here always wins).
+    scope_gaz = _load_gazetteer("scope_verbs")
+    scope_ranked = _sorted_phrases([{"phrase": p} for p in scope_gaz["phrases"]])
+    if _match_longest(tokens, pos, scope_ranked) is not None:
+        reasons = {
+            "operator": SCOPE_STATEMENT, "bearer": SCOPE_STATEMENT,
+            "action": SCOPE_STATEMENT, "action_head": SCOPE_STATEMENT,
+        }
+        return ProseFrame(
+            accepted=False, reason=SCOPE_STATEMENT, operator="", modal_lexeme=lexeme,
+            bearer="", action="", action_head="", condition=condition,
+            exception="", exception_status=NONE_DETECTED, negated=False,
+            certainty={
+                "operator": AMBIGUOUS, "bearer": AMBIGUOUS, "action": AMBIGUOUS,
+                "action_head": AMBIGUOUS, "condition": CERTAIN,
+                "exception_status": CERTAIN,
+            },
+            field_reasons=reasons,
+        )
 
     action_end = frame_end
     new_end, tail_condition, ambiguous = _find_condition_tail(text, tokens, pos, action_end)
@@ -450,14 +495,38 @@ def analyze(sentence: str) -> ProseFrame:
     field_reasons: dict[str, str] = {}
     subject_words = subject.split()
 
+    # A negative-quantifier subject lead ("none of", "neither" [the "Neither
+    # X nor Y ..." coordination], "nobody", "no one" — negation.json's
+    # subject_leads, longest phrase first) forces F exactly like a bare "no"
+    # does, but never resolves to a bearer: unlike "No X ...", none of these
+    # names a single noun phrase (a quantified set, an unresolved two-way
+    # coordination, or a subject with no remaining noun phrase at all) — the
+    # bearer field abstains (AMBIGUOUS_SUBJECT) rather than guess one side of
+    # a coordination or a quantified set as if it were the bearer.
+    subject_leads = sorted(
+        negation_gaz.get("subject_leads", []),
+        key=lambda e: -len(_phrase_words(e["phrase"])),
+    )
+    quantified_negative_subject = False
+    for entry in subject_leads:
+        lead_words = _phrase_words(entry["phrase"])
+        if (len(subject_words) >= len(lead_words)
+                and [w.lower() for w in subject_words[:len(lead_words)]] == lead_words):
+            quantified_negative_subject = True
+            break
+
     forced_prohibition = False
-    if subject_words and subject_words[0].lower() == negative_determiner:
+    if quantified_negative_subject:
+        forced_prohibition = True
+    elif subject_words and subject_words[0].lower() == negative_determiner:
         subject = " ".join(subject_words[1:])
         subject_words = subject.split()
         forced_prohibition = True
 
     bearer = ""
-    if not subject:
+    if quantified_negative_subject:
+        field_reasons["bearer"] = AMBIGUOUS_SUBJECT
+    elif not subject:
         field_reasons["bearer"] = AMBIGUOUS_SUBJECT
     elif any(w.lower() in clause_markers for w in subject_words):
         field_reasons["bearer"] = AMBIGUOUS_SUBJECT

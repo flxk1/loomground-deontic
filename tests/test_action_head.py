@@ -106,12 +106,12 @@ def test_action_head_abstains_on_a_bare_passive_action():
     assert frame.field_reasons["action_head"] == pg.ACTION_IMPLICIT
 
 
-# ── dev-set finding: "chapter" is a cross-reference marker too ───────────
+# ── "chapter" is a cross-reference marker too ─────────────────────────────
 def test_chapter_is_an_xref_marker():
-    # surfaced by the scratchpad/p3/dev precision/coverage report: "under
-    # Chapter II" is as much an unresolved cross-reference as "under Article
-    # 6" or "under Annex I" — classify_exception_status must not call it
-    # internal_parsed just because "chapter" was missing from xref_markers.
+    # "under Chapter II" is as much an unresolved cross-reference as "under
+    # Article 6" or "under Annex I" — classify_exception_status must not call
+    # it internal_parsed just because "chapter" was missing from
+    # xref_markers.
     assert pg.classify_exception_status("requested to do so by the user under Chapter II") \
         == pg.EXCEPTION_XREF_UNRESOLVED
 
