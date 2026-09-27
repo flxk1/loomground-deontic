@@ -6,12 +6,29 @@
 
 ### Bug Fixes
 
-* **deontic:** prose lowering — "shall never"/"must never"/"shall or must at no
-  time" now lower to F (prohibition) with the negation token consumed by the
-  matched cue, consistent with the existing "must not"/"shall not" handling
-  (`action` carries no leftover negation token; `negated` stays `False`,
-  matching `nd-system.json`/`llms.txt`'s "carried by the operator" convention).
-  Round-5 defect (a).
+* **deontic:** prose lowering — "shall never"/"must never"/"shall at no
+  time"/"must at no time" now lower to F (prohibition) with the negation token
+  consumed by the matched cue, consistent with the existing "must not"/"shall
+  not" handling (`action` carries no leftover negation token; `negated` stays
+  `False`, matching `nd-system.json`/`llms.txt`'s "carried by the operator"
+  convention). Round-5 defect (a). Fix: `src/deontic/artifacts/extraction.json`
+  `modal_cues` (prohibition pattern); producer: `deontic.prose.extract`
+  (`src/deontic/prose.py`); tests:
+  `tests/test_prose_never_at_no_time.py::test_never_and_at_no_time_lower_to_prohibition`,
+  `tests/test_prose_never_at_no_time.py::test_must_not_and_shall_not_are_not_regressed`.
+
+* **deontic:** prose lowering — the negation-adverb-after-modal cue is
+  generalised beyond the three Round-5 defect (a) phrasings to cover "may
+  never", a comma-set adverb ("shall, at no time,"), and an interposed phrase
+  between commas ("shall never, under any circumstances,"). Same convention:
+  the negation adverb and any interposed phrase are consumed by the matched
+  cue, so `action` is exactly the verb phrase that follows and `negated` stays
+  `False`. "must not"/"shall not" and the positive `shall`/`must` → O, `may` →
+  P readings are unchanged. Fix: `src/deontic/artifacts/extraction.json`
+  `modal_cues` (prohibition pattern); producer: `deontic.prose.extract`
+  (`src/deontic/prose.py`); tests:
+  `tests/test_prose_negation_adverbs.py::test_negation_adverb_variants_lower_to_prohibition`,
+  `tests/test_prose_negation_adverbs.py::test_must_not_shall_not_and_positive_modals_are_unchanged`.
 
 ## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)
 

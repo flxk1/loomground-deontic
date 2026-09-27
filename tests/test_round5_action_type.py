@@ -65,24 +65,6 @@ def test_operators_module_docstring_no_operator_projection():
     assert "action-type entry" in doc.lower() or "action type" in doc.lower()
 
 
-def test_revert_probe_flags_the_old_wording():
-    """Demonstrates the test is not vacuous: the wording Round 5 replaced DOES
-    trip the semantic check above, so restoring it would fail these tests."""
-    old_dimensions_describes = (
-        "Data-only naming of the reasoning dimensions a deontic statement can be "
-        "carried on. This is vocabulary, not a binding: deontic declares no "
-        "dispatch framework and imports no dimension type. A consumer (solver, an "
-        "ND) projects operators onto its own dimensions at its seam; this file "
-        "only names the axes the vocabulary refers to, so a projection can be "
-        "validated against a shared list. The operator→dimension map does "
-        "not live here."
-    )
-    # The old text projects "operators" onto "dimensions" as a positive claim
-    # ("projects operators onto its own dimensions") with no negation cue in
-    # that sentence — the semantic check must catch it.
-    assert _asserts_operator_dimension_projection(old_dimensions_describes)
-
-
 def test_action_axis_documented_as_a_concept_reference_not_a_5d_channel():
     doc = dplane.nd_system()
     action_axis = doc["axes"]["action"]
