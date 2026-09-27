@@ -72,6 +72,14 @@ conflict_candidates([O(operator : delete personal data), F(operator : delete per
 
 A formula renders to a string the grammar parses back to the same formula: `parse(f.render()) == f` held for all six statements above.
 
+## Registration and dimension
+
+deontic is registered as an nD system on the versum index (the `loomground.planes` entry point, id `deontic`; see `artifacts/nd-system.json`). Its operators (O/P/F) carry no 5D dimension: a norm's content is an action-type entry linked to the norm by a structural `embeds` link, and the deontic `action` coordinate (`concept_reference`) merely references it.
+
+## Negation after a modal
+
+A negation adverb after a modal ("not", "never", "at no time"), with or without interposed commas or an interposed phrase (e.g. "shall never, under any circumstances,"), lowers the modal to F, with the negation adverb and any interposed phrase consumed by the matched cue so neither reaches `action` nor is duplicated onto `negated`.
+
 ## Outside the language
 
 Who wins a conflict, ordering in time, jurisdiction, who the norm's author is. Those belong to `loomground-norm`, `loomground-legal`, `loomground-topos`.

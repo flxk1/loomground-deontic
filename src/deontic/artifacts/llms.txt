@@ -62,7 +62,13 @@ Couples to solver by string agreement only — deontic imports no solver type.
   (never a 5D channel itself), linked to the norm by a structural `embeds`
   link. Negation is recorded once, on the norm's `negated` axis — the sole
   authority for a not/never clause; an action-type entry records the same
-  polarity, never a conflicting one.
+  polarity, never a conflicting one. This plane is registered as an nD system
+  on the versum index (the `loomground.planes` entry point, id `deontic`; see
+  `nd-system.json`). A negation adverb after a modal ("not", "never", "at no
+  time"), with or without interposed commas or an interposed phrase (e.g.
+  "shall never, under any circumstances,"), lowers the modal to F, with the
+  negation adverb and any interposed phrase consumed by the matched cue so
+  neither reaches `action` nor is duplicated onto `negated`.
 - `incident_vocabulary()` → the closed 8-set to inject into a norm-theory floor
   (the solver default differs — inject this).
 - `conflict_candidates(formulae)` → collision edges (`predicate=may-conflict-with`).
