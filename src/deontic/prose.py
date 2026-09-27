@@ -11,8 +11,11 @@ credit application)``.
 Every cue comes from the published extraction data
 (``artifacts/extraction.json``: ``modal_cues`` and ``slot_cues``); this module
 keeps no second copy of them. It is a surface lowering, not reasoning. A negated
-modal ("must not", "shall not", "may not") lowers to F, never to an obligation to
-do the forbidden act (the rule of :func:`deontic.formula.formula_from_fields`).
+modal ("must not", "shall not", "may not", "shall never", "must never", "shall/
+must at no time") lowers to F, with the negation token consumed by the matched
+cue so it is never left inside ``action`` and never duplicated onto ``negated``
+— never to an obligation to do the forbidden act (the rule of
+:func:`deontic.formula.formula_from_fields`).
 The formal statement grammar (:func:`deontic.grammar.parse`) is untouched; this
 is a separate entry for prose.
 

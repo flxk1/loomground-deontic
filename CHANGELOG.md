@@ -2,6 +2,17 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+* **deontic:** prose lowering — "shall never"/"must never"/"shall or must at no
+  time" now lower to F (prohibition) with the negation token consumed by the
+  matched cue, consistent with the existing "must not"/"shall not" handling
+  (`action` carries no leftover negation token; `negated` stays `False`,
+  matching `nd-system.json`/`llms.txt`'s "carried by the operator" convention).
+  Round-5 defect (a).
+
 ## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)
 
 
