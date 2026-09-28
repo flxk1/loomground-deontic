@@ -2,7 +2,7 @@
 <!-- Copyright 2026 flxk1 -->
 # loomground-deontic — language card
 
-Values from `src/deontic/artifacts/grammar/deontic.ebnf`, `artifacts/vocabulary/*.json` and `artifacts/schema/statement.schema.json` (0.2.1). Every statement below was run through `deontic.parse` before this card was written; the outputs are pasted from that run.
+Values from `src/deontic/artifacts/grammar/deontic.ebnf`, `artifacts/vocabulary/*.json` and `artifacts/schema/statement.schema.json` (0.2.1). Canonical-statement examples below are `deontic.parse` inputs; prose examples are `deontic.parse_prose` inputs.
 
 ## Grammar, complete (8 rules)
 

@@ -14,7 +14,7 @@ Deontic language and algebra: O/P/F operators, the eight Hohfeld incidents, a st
 pip install "loomground-deontic @ git+https://github.com/flxk1/loomground-deontic@loomground-deontic-v0.2.1"
 ```
 
-Import name `deontic`. Dependents pin `loomground-deontic>=0.1,<0.2`.
+Import name `deontic`. Dependents pin it by git tag or commit.
 
 ## Usage
 
