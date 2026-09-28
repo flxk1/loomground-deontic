@@ -2,7 +2,7 @@
 <!-- Copyright 2026 flxk1 -->
 # loomground-deontic — language card
 
-Values from `src/deontic/artifacts/grammar/deontic.ebnf`, `artifacts/vocabulary/*.json` and `artifacts/schema/statement.schema.json` (0.1.3). Every statement below was run through `deontic.parse` before this card was written; the outputs are pasted from that run.
+Values from `src/deontic/artifacts/grammar/deontic.ebnf`, `artifacts/vocabulary/*.json` and `artifacts/schema/statement.schema.json` (0.2.1). Canonical-statement examples below are `deontic.parse` inputs; prose examples are `deontic.parse_prose` inputs.
 
 ## Grammar, complete (8 rules)
 
@@ -92,7 +92,7 @@ A negation adverb after a modal ("not", "never", "at no time"), with or without 
 
 ## Negative-quantifier and coordinated-negation subjects
 
-A subject opening with "none of", "neither" (the "Neither X nor Y ..." coordination), "nobody", or "no one" forces the frame to F exactly like a bare "no" does — but, unlike "No X ..." (which strips "no" and keeps the remaining noun phrase as the bearer, e.g. "No processor shall retain the record." → bearer `processor`), none of these names one resolvable noun phrase: "None of the processors ...", "Neither the controller nor the processor ...", "Nobody ...", and "No one ..." all abstain the bearer instead of guessing one side of an unresolved coordination or a quantified set. Example: `deontic.parse("None of the processors shall disclose the data.")` → `operator='F'`, `bearer=''` (abstained), `action='disclose the data'`, `action_head='disclose'`.
+A subject opening with "none of", "neither" (the "Neither X nor Y ..." coordination), "nobody", or "no one" forces the frame to F exactly like a bare "no" does — but, unlike "No X ..." (which strips "no" and keeps the remaining noun phrase as the bearer, e.g. "No processor shall retain the record." → bearer `processor`), none of these names one resolvable noun phrase: "None of the processors ...", "Neither the controller nor the processor ...", "Nobody ...", and "No one ..." all abstain the bearer instead of guessing one side of an unresolved coordination or a quantified set. Example: `deontic.parse_prose("None of the processors shall disclose the data.")` → `operator='F'`, `bearer=''` (abstained), `action='disclose the data'`, `action_head='disclose'`.
 
 A closed-class stoplist (`artifacts/gazetteer/function_words.json`) is a defensive backstop on `action_head`: a resolved lemma that is itself a determiner, negator, coordinator, copula, or preposition abstains rather than publish — so `action_head` is never, for example, the word "neither".
 
