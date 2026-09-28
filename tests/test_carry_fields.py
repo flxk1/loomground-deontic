@@ -64,7 +64,7 @@ def test_project_surface_is_unchanged_by_the_carry_fields():
     )
     assert set(deontic.project(f)) == {
         "operator", "bearer", "action", "condition", "exception",
-        "negated", "incident", "counterparty",
+        "exception_status", "negated", "incident", "counterparty",
     }
 
 

@@ -25,6 +25,7 @@
     "action",
     "condition",
     "exception",
+    "exception_status",
     "negated",
     "incident",
     "counterparty"

@@ -195,11 +195,12 @@ def test_system_health_healthy_set_has_no_pathologies():
 
 # --- the composition contract -----------------------------------------------
 
-def test_dimension_affinity_is_total_and_in_solver_vocabulary():
+def test_dimension_affinity_is_total_and_always_none():
+    # Round 4: ought carries no 5D dimension — every operator, and any unknown
+    # string, answers None rather than a member of SOLVER_DIMENSIONS.
     for op in OPS:
-        assert contract.dimension_affinity(op) in contract.SOLVER_DIMENSIONS
-    # unknown operators fall to the relational floor, still a valid string
-    assert contract.dimension_affinity("Z") == "relational"
+        assert contract.dimension_affinity(op) is None
+    assert contract.dimension_affinity("Z") is None
 
 
 def test_solver_dimension_strings_are_the_canonical_five():
@@ -216,7 +217,7 @@ def test_packet_is_lossless_over_statement_and_names_correlative():
     )
     p = deontic.packet(f)
     assert p.statement == deontic.project(f)
-    assert p.dimension == "causal"
+    assert p.dimension is None  # ought carries no 5D dimension (Round 4)
     assert p.incident == "duty"
     assert p.correlative == "claim"        # the counterparty's jural correlative
     assert p.dual == f.dual()
@@ -240,7 +241,8 @@ def test_contract_surface_is_self_consistent():
     s = deontic.contract_surface()
     assert s["operators"] == list(OPS)
     assert s["incidents"] == list(INCS)
-    assert set(s["operator_dimension_affinity"].values()) <= set(contract.SOLVER_DIMENSIONS)
+    # Round 4: no operator carries a 5D dimension
+    assert set(s["operator_dimension_affinity"].values()) == {None}
     assert s["conflict_predicate"] == "may-conflict-with"
 
 

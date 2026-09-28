@@ -20,6 +20,11 @@
           "type": "json",
           "path": "src/deontic/artifacts/conformance/manifest.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "src/deontic/artifacts/nd-system.json",
+          "jsonpath": "$.version"
         }
       ]
     }
