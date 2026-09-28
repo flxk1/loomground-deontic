@@ -2,6 +2,15 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
+## [0.2.2](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.1...loomground-deontic-v0.2.2) (2026-09-28)
+
+
+### Documentation
+
+* correct stale claims; add How this is made ([b61aa94](https://github.com/flxk1/loomground-deontic/commit/b61aa94ab665401181c2f6996c6d3ba56843e62d))
+* fix remaining stale statements found in review ([24dfb1d](https://github.com/flxk1/loomground-deontic/commit/24dfb1dbed8ac626b8727a8c9da8700217fa6901))
+* fix stale version/tag claims; add How this is made ([a5930c7](https://github.com/flxk1/loomground-deontic/commit/a5930c70169edbc060411762fb0153fdb6d2150a))
+
 ## [Unreleased]
 
 ### Features
