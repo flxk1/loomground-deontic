@@ -52,6 +52,10 @@ model:
 
 ## Gaps
 
+D1 and D2 below have shipped, as `deontic.intervention` — see
+[ADR 001](../decisions/001-corrigibility-as-a-hohfeld-relation.md). D3 remains
+open.
+
 ### D1 · No intervention-position profile
 
 `classify_incident` decides `power` versus `privilege` by whether the verb

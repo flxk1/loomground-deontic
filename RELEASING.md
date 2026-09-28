@@ -13,7 +13,7 @@ questions, and none should be collapsed into another:
 1. **Package/release** — `src/deontic/_version.py` (the single source `pyproject.toml`
    reads), `src/deontic/artifacts/deontic-card.json`, and
    `src/deontic/artifacts/conformance/manifest.json` share one number (currently
-   `0.1.0`). This is the version PyPI installs and the version this document's
+   `0.2.1`). This is the version PyPI installs and the version this document's
    release flow manages. `tools/check_versions.py` gates that the three stay equal
    and that the `llms.txt` guide is discoverable and in sync.
 2. **Contract** — `CONTRACT_VERSION` in `src/deontic/contract.py`: the version of
@@ -23,7 +23,7 @@ questions, and none should be collapsed into another:
    keeps this axis internally consistent (the self-describing `contract_surface()`
    reports the package version as its `language_version`) but never asserts it equals
    axis 1.
-3. **Plugin/distribution** — `.claude-plugin/plugin.json` (currently `0.1.0`): the
+3. **Plugin/distribution** — `.claude-plugin/plugin.json` (currently `0.1.3`): the
    universal skill bundle's own version. Bumped by hand when the bundled skill
    changes; never needs to equal the package version. `tools/check_companion.py`
    gates that the bundled engine tracks the language (conformance + vocabulary),
@@ -43,8 +43,8 @@ commits on `main` into a reviewed release pull request:
 - `docs:`, `test:`, `ci:`, and `chore:` do not by themselves trigger a release.
 
 Merging the generated release pull request updates the version and `CHANGELOG.md`,
-and creates a plain tag of the form `vX.Y.Z` — no component prefix, because this
-repository publishes a single package. Configuration lives in
+and creates a tag of the form `loomground-deontic-vX.Y.Z` — Release Please's
+default component-prefixed tag for a named package. Configuration lives in
 `release-please-config.json` and `.release-please-manifest.json`; the workflow is
 `.github/workflows/release-please.yml`.
 
