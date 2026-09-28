@@ -11,7 +11,7 @@ Deontic language and algebra: O/P/F operators, the eight Hohfeld incidents, a st
 ## Install
 
 ```
-pip install "loomground-deontic @ git+https://github.com/flxk1/loomground-deontic@loomground-deontic-v0.1.3"
+pip install "loomground-deontic @ git+https://github.com/flxk1/loomground-deontic@loomground-deontic-v0.2.1"
 ```
 
 Import name `deontic`. Dependents pin `loomground-deontic>=0.1,<0.2`.
@@ -79,7 +79,11 @@ Open decisions: `docs/open-decisions.md`, `docs/decisions/`.
 
 ## Status
 
-0.1.3 (draft) · contract 0.1.0 · 93 tests · 8 conformance vectors · version axes gated (`tools/check_versions.py`) · Python ≥ 3.10 (CI 3.10, 3.14).
+0.2.1 (draft) · contract 0.1.0 · 341 tests · 8 conformance vectors · version axes gated (`tools/check_versions.py`) · Python ≥ 3.10 (CI 3.10, 3.14).
+
+## How this is made
+
+The code and documentation are written with Loomground agents. The maintainer reads and corrects all of it.
 
 ## License
 

@@ -4,7 +4,7 @@
 
 Moved verbatim from the README.
 
-`0.1.3`, draft. Two boundary decisions are set with foundational defaults, open
+`0.2.1`, draft. Two boundary decisions are set with foundational defaults, open
 to revision before `1.0`:
 
 - **Distribution/import name.** `loomground-deontic` (dist) with `deontic`
