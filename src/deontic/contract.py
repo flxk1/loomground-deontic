@@ -11,12 +11,17 @@ is combinable" promise made concrete.
 Deontic presents three things, over three seams solver already has:
 
   1. **Dimension affinity** (solver's nD edge algebra, ``loomground_solver.dimensions``).
-     Each operator declares the reasoning axis its edge carries, as a STRING
-     drawn from :data:`SOLVER_DIMENSIONS`. Solver validates a projected edge's
-     ``dimension`` by string membership (``SolverProjection.validate``), so the
-     string *is* the contract — deontic imports no ``Dimension`` type and builds
-     no edge. The consumer maps the string to its own dimension and composes via
-     solver's ``COMPOSITION_TABLE``.
+     Round 4 correction: deontic is not causal — the 5D describes what IS; the
+     deontic operators (O/P/F) are OUGHT and bind to no 5D dimension. An
+     operator is a normative force over a bearer:action pair, not a fact located
+     on the 5D manifold; only a norm's *content* (the regulated action/state)
+     can be lowered into 5D, and it does so through the factual plane, not
+     through the operator. :func:`dimension_affinity` is kept importable for API
+     compatibility with callers built against the earlier (reversed) binding; it
+     is now total and always returns ``None`` — for O, P, F and for any other
+     string. A consumer that needs a dimensioned edge for deontic content
+     dimensions the norm's *content* at its own seam (e.g. via the factual
+     plane's projection of the regulated action/state), never the operator.
 
   2. **Incident vocabulary** (solver's norm-theory floor, ``loomground_solver.norm_contract``).
      :func:`incident_vocabulary` is the closed set a consumer injects as
@@ -40,9 +45,7 @@ from dataclasses import dataclass, asdict
 from typing import Any
 
 from ._version import __version__
-from .operators import (
-    OP_OBLIGATION, OP_PERMISSION, OP_PROHIBITION, VALID_OPERATORS,
-)
+from .operators import VALID_OPERATORS
 from .incidents import INCIDENTS, correlative
 from .formula import DeonticFormula, detect_conflicts
 from .grammar import project
@@ -65,26 +68,28 @@ SOLVER_DIMENSIONS = (
     "structural", "causal", "intentional", "temporal", "relational",
 )
 
-# Each operator's primary reasoning axis. An obligation or prohibition is
-# *triggered* by its condition (causal); a permission exists *for* a bearer's
-# benefit (intentional). This is language — the operator's meaning — expressed as
-# a contract string; the consumer builds the typed edge and may override per its
-# own domain knowledge.
-_OP_AFFINITY: dict[str, str] = {
-    OP_OBLIGATION: "causal",
-    OP_PROHIBITION: "causal",
-    OP_PERMISSION: "intentional",
-}
+# Round 4 (deontic-is-ought correction, D1 reversed): an operator (O/P/F) is a
+# deontic modality — an OUGHT — not a fact, so it binds to no 5D dimension. The
+# earlier operator->dimension map (``extraction.json`` -> ``operator_axis``) is
+# retired; deontic publishes no operator->dimension binding anywhere (see
+# ``deontic.plane.binding``, which is now always ``{}``, and
+# ``tests/test_plane.py``/``tools/check_extraction.py`` Gate B, which guard that
+# no operator carries a 5D dimension). A norm's *content* enters 5D only through
+# the factual plane's own lowering of the regulated action/state — never through
+# the operator.
+def dimension_affinity(operator: str) -> str | None:
+    """The reasoning-dimension string an operator's edge carries: always ``None``.
 
-
-def dimension_affinity(operator: str) -> str:
-    """The reasoning-dimension string an operator's edge carries.
-
-    Total over :data:`~deontic.operators.VALID_OPERATORS`; returns ``"relational"``
-    (solver's safe floor: "these two things are linked") for anything else. The
-    return is always a member of :data:`SOLVER_DIMENSIONS`.
+    Total over :data:`~deontic.operators.VALID_OPERATORS` and over any other
+    string. Ought carries no 5D dimension: O, P, and F are normative modalities,
+    not facts located on the 5D manifold, so this function never names a
+    dimension for any operator. A norm's content (the regulated action/state) is
+    what a consumer lowers into 5D — through the factual plane at its own seam —
+    and that lowering is what may then carry a dimension, never the operator
+    itself. Kept importable, returning ``None``, for API compatibility with
+    callers built against the earlier (reversed) binding.
     """
-    return _OP_AFFINITY.get(operator, "relational")
+    return None
 
 
 @dataclass(frozen=True)
@@ -92,15 +97,17 @@ class CompositionPacket:
     """What deontic hands a reasoner for one formula.
 
     Solver-agnostic and lossless: the ``statement`` is the structured projection
-    (statement.schema.json shape); ``dimension`` is the affinity string; the
-    ``incident``/``correlative`` name the Hohfeld positions of the addressee and
-    counterparty; ``dual`` exposes the operator's defining identity. A consumer
-    assembles this into a ``SolverProjection`` pair with a dimensioned edge; the
-    edge construction and any dimension override are the consumer's.
+    (statement.schema.json shape); ``dimension`` is always ``None`` (ought carries
+    no 5D dimension — see :func:`dimension_affinity`); the ``incident``/
+    ``correlative`` name the Hohfeld positions of the addressee and counterparty;
+    ``dual`` exposes the operator's defining identity. A consumer that needs a
+    dimensioned edge dimensions the norm's *content* at its own seam (e.g. via
+    the factual plane), not this packet's ``dimension`` field; the edge
+    construction and any dimensioning are the consumer's.
     """
 
     statement: dict[str, Any]
-    dimension: str
+    dimension: str | None
     incident: str
     correlative: str
     dual: str
@@ -146,7 +153,12 @@ def incident_vocabulary() -> tuple[str, ...]:
 
 def contract_surface() -> dict[str, Any]:
     """A self-describing summary of the composition surface — what deontic
-    presents, versioned, so a consumer can negotiate against it."""
+    presents, versioned, so a consumer can negotiate against it.
+
+    ``operator_dimension_affinity`` maps every operator to ``None``: ought
+    carries no 5D dimension (see :func:`dimension_affinity`). ``dimensions``
+    stays published as the vocabulary a *content* projection may draw on.
+    """
     return {
         "contract_version": CONTRACT_VERSION,
         "language_version": __version__,

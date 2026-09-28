@@ -27,10 +27,44 @@ def _schema() -> dict:
     return json.loads((_ARTIFACTS / "schema" / "statement.schema.json").read_text(encoding="utf-8"))
 
 
+def _exception_gazetteer() -> dict:
+    return json.loads(
+        (_ARTIFACTS / "gazetteer" / "exception.json").read_text(encoding="utf-8"))
+
+
 _SCHEMA = _schema()
 _OPERATORS = tuple(_SCHEMA["properties"]["operator"]["enum"])          # ("O","P","F")
 _INCIDENTS = tuple(_SCHEMA["properties"]["incident"]["enum"])          # 8 + ""
 _REQUIRED = tuple(_SCHEMA["required"])                                 # operator, bearer, action
+
+_EXCEPTION_GAZ = _exception_gazetteer()
+_XREF_MARKERS = tuple(_EXCEPTION_GAZ["xref_markers"])
+_EXTERNAL_TERMS = tuple(_EXCEPTION_GAZ["external_terms"])
+_NONE_DETECTED = "none_detected"
+_INTERNAL_PARSED = "internal_parsed"
+_EXCEPTION_XREF_UNRESOLVED = "EXCEPTION_XREF_UNRESOLVED"
+_EXCEPTION_EXTERNAL_UNRESOLVED = "EXCEPTION_EXTERNAL_UNRESOLVED"
+
+
+def classify_exception_status(exception_text: str) -> str:
+    """The exception_status a clause's own text implies — a pure function of
+    the text alone (mirrors deontic.prose_grammar.classify_exception_status,
+    published as data via artifacts/gazetteer/exception.json's xref_markers /
+    external_terms so an independent implementation reproduces it exactly, by
+    reading the published data file — not by importing product code). No
+    cross-reference is resolved: an ``Article N`` / ``law`` marker only
+    classifies the clause as unresolved.
+    """
+    if not (exception_text or "").strip():
+        return _NONE_DETECTED
+    words = {w.lower() for w in re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ§]+", exception_text)}
+    if any(marker.rstrip(".") in words or marker in exception_text.lower()
+           for marker in _XREF_MARKERS):
+        return _EXCEPTION_XREF_UNRESOLVED
+    if any(term in words for term in _EXTERNAL_TERMS):
+        return _EXCEPTION_EXTERNAL_UNRESOLVED
+    return _INTERNAL_PARSED
+
 
 # The canonical statement grammar (deontic.ebnf), implemented independently.
 _COND = re.compile(r"^\s*if\s*\[(?P<cond>.*?)\]\s*then\s+", re.S | re.I)
@@ -79,7 +113,9 @@ def parse(source: str) -> dict[str, Any]:
 
     return {
         "operator": op, "bearer": bearer, "action": action,
-        "condition": condition, "exception": exception, "negated": negated,
+        "condition": condition, "exception": exception,
+        "exception_status": classify_exception_status(exception),
+        "negated": negated,
         "incident": "", "counterparty": "",
     }
 
@@ -105,6 +141,8 @@ def project(formula: dict[str, Any]) -> dict[str, Any]:
         "action": formula["action"],
         "condition": formula.get("condition", ""),
         "exception": formula.get("exception", ""),
+        "exception_status": formula.get(
+            "exception_status", classify_exception_status(formula.get("exception", ""))),
         "negated": bool(formula.get("negated", False)),
         "incident": formula.get("incident", ""),
         "counterparty": formula.get("counterparty", ""),

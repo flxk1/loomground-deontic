@@ -1,0 +1,35 @@
+{
+  "describes": "The action_head production's verb-lemma table: the governing verb of a resolved `action` span reduces to its lemma (base/dictionary form) through this table, never through a natural-language lemmatiser. 'lemma_exceptions' is a closed surface-form -> lemma map for the inflected forms the prose grammar's fixtures and conformance vectors exercise; a surface form not listed falls back to the deterministic stdlib suffix rule in deontic.prose_grammar._suffix_lemma (drop a 3rd-person -s/-es, an -ing gerund, or a regular -ed past, restoring a dropped silent 'e' — no general morphology, no lookup outside this table). 'skip_leading' are single manner/temporal adverbs (a fixed list, not a compiled pattern) the action_head production skips over before it looks for the governing verb, so 'promptly notify the authority' still resolves to 'notify'.",
+  "skip_leading": [
+    "promptly", "immediately", "thereafter", "subsequently", "also",
+    "then", "otherwise", "accordingly", "additionally"
+  ],
+  "lemma_exceptions": {
+    "disclosed": "disclose", "discloses": "disclose", "disclosing": "disclose",
+    "processed": "process", "processes": "process", "processing": "process",
+    "notified": "notify", "notifies": "notify", "notifying": "notify",
+    "retained": "retain", "retains": "retain", "retaining": "retain",
+    "erased": "erase", "erases": "erase", "erasing": "erase",
+    "ensured": "ensure", "ensures": "ensure", "ensuring": "ensure",
+    "engaged": "engage", "engages": "engage", "engaging": "engage",
+    "submitted": "submit", "submits": "submit", "submitting": "submit",
+    "assessed": "assess", "assesses": "assess", "assessing": "assess",
+    "carried": "carry", "carries": "carry", "carrying": "carry",
+    "provided": "provide", "provides": "provide", "providing": "provide",
+    "corrected": "correct", "corrects": "correct", "correcting": "correct",
+    "deleted": "delete", "deletes": "delete", "deleting": "delete",
+    "stored": "store", "stores": "store", "storing": "store",
+    "transferred": "transfer", "transfers": "transfer", "transferring": "transfer",
+    "obtained": "obtain", "obtains": "obtain", "obtaining": "obtain",
+    "made": "make", "makes": "make", "making": "make",
+    "taken": "take", "takes": "take", "taking": "take",
+    "kept": "keep", "keeps": "keep", "keeping": "keep",
+    "had": "have", "has": "have", "having": "have",
+    "given": "give", "gives": "give", "giving": "give",
+    "informed": "inform", "informs": "inform", "informing": "inform",
+    "verified": "verify", "verifies": "verify", "verifying": "verify",
+    "applied": "apply", "applies": "apply", "applying": "apply",
+    "carries out": "carry", "carried out": "carry",
+    "sets out": "set", "set out": "set"
+  }
+}

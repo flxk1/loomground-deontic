@@ -4,6 +4,7 @@
   "action": "implement TOMs",
   "condition": "processing is carried out",
   "exception": "Art.11",
+  "exception_status": "EXCEPTION_XREF_UNRESOLVED",
   "negated": false,
   "incident": "",
   "counterparty": ""

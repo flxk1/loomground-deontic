@@ -68,6 +68,8 @@ Module inventory: `docs/modules.md`.
 
 Deontic language and algebra; language separate from inference. The package contains no inference; the algebra flags candidate conflicts for the consuming reasoner.
 
+deontic is registered as an nD system on the versum index (the `loomground.planes` entry point, id `deontic`; see `artifacts/nd-system.json`). Its operators (O/P/F) carry no 5D dimension: a norm's content is an action-type entry linked to the norm by a structural `embeds` link, and the deontic `action` coordinate (`concept_reference`) merely references it. A negation adverb after a modal ("not", "never", "at no time"), with or without interposed commas or an interposed phrase (e.g. "shall never, under any circumstances,"), lowers the modal to F, with the negation adverb and any interposed phrase consumed by the matched cue so neither reaches `action` nor is duplicated onto `negated`.
+
 - Consumes: nothing at runtime (`dependencies = []`).
 - Consumed by: `loomground-solver`, `loomground-versum`, `loomground-ingest`, `loomground-norm`.
 - Siblings: `loomground-governance`, `loomground-epistemic`, over `loomground-factual`.

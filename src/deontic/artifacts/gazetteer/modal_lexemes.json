@@ -1,0 +1,17 @@
+{
+  "describes": "Modal-head phrases the prose grammar's modal_head production recognises, each mapped to one of the three canonical lexemes (shall/must/may) the truth table (_NEGATED_MODAL in deontic.prose_grammar) dispatches on. A data table, not a regex: the recursive-descent parser matches a phrase's words at a token position; it does not compile or search a pattern. Multi-word phrases are tried longest-first at each position. An entry may also carry a literal 'operator' (Phase 1 scope: F for 'is prohibited from'/'is not permitted to', P for 'is authorised to'): the phrase itself already lexicalises a modal (a negated one, for the F entries), so the grammar dispatches straight to that operator instead of through the lexeme/negation table. An entry that carries a literal 'operator' may also carry 'negates': true when the phrase's own wording is itself a negator ('is prohibited from', 'is not permitted to' lexicalise a negated modal) that must be counted alongside any adverb/determiner/interposed negator when the grammar decides AMBIGUOUS_NEGATION (deontic.prose_grammar.analyze); omitted/false for a forced operator phrase that carries no negation of its own ('is authorised to' forces P without negating anything). English only (Phase 1 scope).",
+  "phrases": [
+    { "phrase": "shall", "lexeme": "shall" },
+    { "phrase": "must", "lexeme": "must" },
+    { "phrase": "may", "lexeme": "may" },
+    { "phrase": "is obliged to", "lexeme": "shall" },
+    { "phrase": "is required to", "lexeme": "shall" },
+    { "phrase": "has to", "lexeme": "shall" },
+    { "phrase": "is permitted to", "lexeme": "may" },
+    { "phrase": "is free to", "lexeme": "may" },
+    { "phrase": "is entitled to", "lexeme": "may" },
+    { "phrase": "is authorised to", "lexeme": "may", "operator": "P" },
+    { "phrase": "is prohibited from", "lexeme": "may", "operator": "F", "negates": true },
+    { "phrase": "is not permitted to", "lexeme": "may", "operator": "F", "negates": true }
+  ]
+}

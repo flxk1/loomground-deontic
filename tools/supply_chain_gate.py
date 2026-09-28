@@ -9,10 +9,15 @@ import json
 import re
 import sys
 import tempfile
-import tomllib
 from pathlib import Path
 
+try:
+    import tomllib  # stdlib, Python >= 3.11
+except ModuleNotFoundError:  # pragma: no cover - the gate runs on Python 3.x (>=3.11) in CI
+    tomllib = None
+
 ROOT = Path(__file__).resolve().parents[1]
+_TOML_DECODE_ERROR = tomllib.TOMLDecodeError if tomllib is not None else ValueError
 GATE_VERSION = "loomground-supply-chain-gate/2026.07.25.1"
 KNOWN = {
     "attrs": "MIT", "cffi": "MIT", "charset-normalizer": "MIT",
@@ -72,6 +77,11 @@ def inventory() -> dict:
                 str(meta.get("license", "")), "package-lock.json")
     pyproject = ROOT / "pyproject.toml"
     if pyproject.is_file():
+        if tomllib is None:
+            raise ValueError(
+                "the supply-chain gate requires Python >= 3.11 (tomllib); "
+                "run it with the 'python3' toolchain, not a Python 3.10 interpreter"
+            )
         raw = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         for spec in raw.get("project", {}).get("dependencies", []):
             name = re.split(r"[@<>=!~;\[ ]", spec, maxsplit=1)[0]
@@ -171,7 +181,7 @@ def main() -> int:
             print(f"SUPPLY CHAIN SELF-TEST PASS ({GATE_VERSION})")
             return 0
         result = inventory()
-    except (OSError, ValueError, json.JSONDecodeError, tomllib.TOMLDecodeError) as exc:
+    except (OSError, ValueError, json.JSONDecodeError, _TOML_DECODE_ERROR) as exc:
         print(f"SUPPLY CHAIN FAIL: {exc}", file=sys.stderr)
         return 1
     if args.notices:
