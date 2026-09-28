@@ -4,6 +4,7 @@
   "action": "implement TOMs",
   "condition": "",
   "exception": "",
+  "exception_status": "none_detected",
   "negated": false,
   "incident": "",
   "counterparty": ""

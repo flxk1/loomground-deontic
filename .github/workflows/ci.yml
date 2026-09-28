@@ -63,6 +63,8 @@ jobs:
           python-version: "3.x"
       - name: install pinned release tooling
         run: python3 -m pip install "pytest==9.1.1" "jsonschema==4.26.0" "build==1.4.0" "reuse==6.2.0"
+      - name: install the package under test (so its entry points are registered)
+        run: python3 -m pip install .
       - name: executable release definition of done
         run: python3 tools/release_gate.py
 

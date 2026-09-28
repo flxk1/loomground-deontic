@@ -56,8 +56,12 @@ A "right" is ambiguous (this is Hohfeld's point). Decide:
 ## Step 3 — Transcribe and classify (the engine does the work)
 Primary path: call `deontic_parse` with
 `{"statement": "The processor shall not engage a subprocessor."}` — it returns
-the formula fields (modality, bearer, action, condition, exception, incident,
-negated) and the `render` round-trip.
+the formula fields (modality, bearer, action, condition, exception,
+exception_status, incident, negated) and the `render` round-trip.
+`exception_status` (`none_detected` / `internal_parsed` /
+`EXCEPTION_XREF_UNRESOLVED` / `EXCEPTION_EXTERNAL_UNRESOLVED`,
+`eng.classify_exception_status`) is a pure classification of the `exception`
+clause's own text — it never resolves the cross-reference.
 
 Shell fallback — the bundled engine, so the incident classification and
 structure are deterministic:

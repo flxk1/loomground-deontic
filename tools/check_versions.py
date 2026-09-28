@@ -7,7 +7,7 @@ internally consistent and never asserts equality across them (see RELEASING.md).
 
   Axis 1 — package/release. The single source `src/deontic/_version.py` (which
     `pyproject.toml` reads), `deontic-card.json`, the conformance `manifest.json`,
-    and the release-please tracker `.release-please-manifest.json` must all carry
+    the plane's `nd-system.json`, and the release-please tracker `.release-please-manifest.json` must all carry
     the same number. A release bumps these together.
   Axis 2 — contract. `CONTRACT_VERSION` in `contract.py` versions the composition
     surface; it moves independently. The gate only checks that the self-describing
@@ -50,6 +50,10 @@ def _manifest() -> dict:
     return json.loads((ART / "conformance" / "manifest.json").read_text(encoding="utf-8"))
 
 
+def _nd_system() -> dict:
+    return json.loads((ART / "nd-system.json").read_text(encoding="utf-8"))
+
+
 def _release_please_version() -> str:
     data = json.loads((ROOT / ".release-please-manifest.json").read_text(encoding="utf-8"))
     return str(data.get(".", ""))
@@ -60,7 +64,10 @@ def check_package_axis() -> list[str]:
     card = str(_card().get("version", ""))
     man = str(_manifest().get("version", ""))
     rel = _release_please_version()
+    nd = str(_nd_system().get("version", ""))
     fails = []
+    if nd != pkg:
+        fails.append(f"nd-system.json version {nd!r} != package version {pkg!r}")
     if card != pkg:
         fails.append(f"deontic-card.json version {card!r} != package version {pkg!r}")
     if man != pkg:
@@ -100,7 +107,7 @@ def check_llms_and_card_sync() -> list[str]:
 
 
 _CHECKS = (
-    ("package axis (version.py = card = manifest = release-please)", check_package_axis),
+    ("package axis (version.py = card = manifest = nd-system = release-please)", check_package_axis),
     ("contract axis (surface is self-consistent)", check_contract_axis),
     ("llms.txt discoverable, card in sync with code", check_llms_and_card_sync),
 )

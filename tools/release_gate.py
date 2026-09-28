@@ -25,9 +25,13 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import tomllib
 import zipfile
 from pathlib import Path
+
+try:
+    import tomllib  # stdlib, Python >= 3.11
+except ModuleNotFoundError:  # pragma: no cover - the gate runs on Python 3.x (>=3.11) in CI
+    tomllib = None
 
 ROOT = Path(__file__).resolve().parent.parent
 ART = ROOT / "src" / "deontic" / "artifacts"
@@ -55,6 +59,8 @@ REQUIRED_WHEEL_ARTIFACTS = (
     "deontic/artifacts/vocabulary/operators.json",
     "deontic/artifacts/vocabulary/incidents.json",
     "deontic/artifacts/conformance/manifest.json",
+    "deontic/artifacts/conformance/prose.json",
+    "deontic/artifacts/nd-system.json",
 )
 
 
@@ -76,6 +82,11 @@ def check_source_contract() -> None:
     if missing:
         raise AssertionError(f"missing release files: {missing}")
 
+    if tomllib is None:
+        raise AssertionError(
+            "the release gate requires Python >= 3.11 (tomllib); "
+            "run it with the 'python3' toolchain, not a Python 3.10 interpreter"
+        )
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     if project["name"] != "loomground-deontic":
         raise AssertionError("project.name must be loomground-deontic")

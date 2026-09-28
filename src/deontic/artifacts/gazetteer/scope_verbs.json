@@ -1,0 +1,10 @@
+{
+  "describes": "The sole source of the scope/effect verb phrases deontic.prose_grammar.analyze checks for at the position where the action span would otherwise open (right after modal_head, interposed*, negation? — the same 'pos' the frame's action production would start reading from). A sentence whose action opens on one of these phrases states what an instrument or provision does or covers (its scope, temporal application, or relation to other provisions), not a bearer's duty: 'This Regulation shall not apply to processing carried out by a natural person.', 'This Article shall not affect the application of Regulation (EU) 2016/679.', 'This Chapter shall be without prejudice to the powers of supervisory authorities.', 'This Regulation shall not preclude Member State law.', 'This Regulation shall apply from 25 May 2018.'. Matched word-for-word at the token position (longest phrase first), never by a compiled pattern — the same mechanism modal_lexemes.json/interposed.json/condition.json/exception.json already use. Adding or removing an entry here is the only way to change which verb phrases classify a sentence as scope/constitutive rather than a duty; deontic.prose_grammar carries no inline copy of this list.",
+  "phrases": [
+    "apply to",
+    "apply from",
+    "affect",
+    "preclude",
+    "be without prejudice to"
+  ]
+}
