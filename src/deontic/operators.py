@@ -16,9 +16,14 @@ in :mod:`deontic.incidents`, not here.
 Contract: the operator identifiers are stable — they appear in formulae, the
 JSON schema, and any audit log. Renaming one is a migration.
 
-The operator→reasoning-dimension projection deliberately does not live here; it
-is a consumer's job at its own seam. This module imports nothing but the standard
-library.
+Round 5: an operator carries no 5D dimension, in any form or under any name — an
+operator is OUGHT, not a fact on the 5D manifold that describes what IS, so there
+is no operator→dimension projection to perform, here or at any consumer's seam.
+A norm's factual side is its regulated action, entered into the versum as its own
+action-type entry (never asserted as the norm itself) and linked to the norm by a
+structural 'embeds' link; a dimension, when one applies, is carried by that
+action-type entry's content, never by the operator. This module imports nothing
+but the standard library.
 """
 
 from __future__ import annotations

@@ -22,6 +22,7 @@ from typing import Any
 from .formula import DeonticFormula
 from .operators import VALID_OPERATORS
 from .incidents import INCIDENTS
+from .prose_grammar import classify_exception_status
 
 __all__ = ["DeonticSyntaxError", "parse", "validate", "project"]
 
@@ -84,6 +85,7 @@ def parse(source: str) -> DeonticFormula:
         action=action,
         condition=condition,
         exception=exception,
+        exception_status=classify_exception_status(exception),
         negated=negated,
     )
 
@@ -115,13 +117,24 @@ def validate(formula: DeonticFormula) -> dict[str, Any]:
 
 
 def project(formula: DeonticFormula) -> dict[str, Any]:
-    """Project a formula to the structured statement shape (statement.schema.json)."""
+    """Project a formula to the structured statement shape (statement.schema.json).
+
+    ``exception_status`` is ``formula.exception_status`` when the formula
+    already carries one (set by :func:`parse` or a caller of
+    :func:`deontic.formula_from_fields` that passed its own classification);
+    otherwise it is computed fresh from ``formula.exception`` via
+    :func:`deontic.prose_grammar.classify_exception_status` — the same pure
+    function :func:`deontic.plane.claim_for` uses for its own coordinate — so
+    a :class:`DeonticFormula` built directly (bypassing both) still projects
+    a real classification rather than the schema's bare ``''`` default.
+    """
     return {
         "operator": formula.operator,
         "bearer": formula.bearer,
         "action": formula.action,
         "condition": formula.condition,
         "exception": formula.exception,
+        "exception_status": formula.exception_status or classify_exception_status(formula.exception),
         "negated": formula.negated,
         "incident": formula.incident,
         "counterparty": formula.counterparty,

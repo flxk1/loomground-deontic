@@ -4,6 +4,7 @@
   "action": "engage a subprocessor",
   "condition": "",
   "exception": "",
+  "exception_status": "none_detected",
   "negated": false,
   "incident": "",
   "counterparty": ""

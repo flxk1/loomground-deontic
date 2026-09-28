@@ -28,6 +28,9 @@ reasoning layer — it defines the language, and a reasoner does the inference.
 | `deontic.artifacts` | Data-only loader for the packaged language artifacts. |
 | `deontic.conformance` | Vectors and the acceptance runner. |
 | `deontic.protocol` | The neutral protocol any runtime implements. |
+| `deontic.prose_grammar` | The stdlib recursive-descent English prose parser (`analyze`), table-driven from the JSON gazetteers under `artifacts/gazetteer/`. Abstention is **per field** (operator, bearer, action, `action_head`, exception_status): a clear modal still yields a modality even when the bearer or the action cannot be grounded, each unresolved field carrying its own typed reason in `ProseFrame.field_reasons`; `accepted`/`reason` stay the whole-frame predicate for callers that only want one code. `action_head` is the action's governing verb lemma (stdlib rule-based, deterministic — never the verb of a subordinate complement). |
+| `deontic.prose` | `extract` (thin pre-Phase-1-compatible wrapper, `[]` or one formula) and `parse` (the full `ProseFrame`) over `deontic.prose_grammar`. |
+| `deontic.ledger` | The append-only (`'a'`-mode only) per-sentence abstention ledger over a batch (`run_batch`/`check_invariant`): `accepted + abstained == input`. |
 
 Two further modules export through `deontic`: `deontic.intervention` (the
 correctability profile over the existing incidents) and `deontic.contract` (the

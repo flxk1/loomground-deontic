@@ -1,0 +1,8 @@
+{
+  "describes": "Interposed material the prose grammar's interposed* production recognises between modal_head and action (deontic.ebnf, modal_frame). Each entry is a fixed phrase (matched word-for-word at a token position, never by a compiled pattern) plus 'negating': whether the phrase itself carries the negation ('at no time' does; 'at any time' and 'under any circumstances' do not). Surrounding commas are structural delimiters the tokenizer emits and the parser consumes; they are not gazetteer data.",
+  "phrases": [
+    { "phrase": "under any circumstances", "negating": false },
+    { "phrase": "at any time", "negating": false },
+    { "phrase": "at no time", "negating": true }
+  ]
+}

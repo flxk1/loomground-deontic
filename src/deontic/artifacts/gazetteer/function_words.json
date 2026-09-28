@@ -1,0 +1,9 @@
+{
+  "describes": "A closed class of English function words (determiners, coordinators, negators, pronouns, copula/auxiliary forms, prepositions) that can never be a legitimate action_head verb lemma. deontic.prose_grammar._action_head consults this stoplist as a defensive backstop after computing a candidate lemma (from verb_lemma.json's lemma_exceptions or the stdlib suffix fallback): a candidate landing in this closed class abstains (field_reasons['action_head'] = ACTION_HEAD_INDETERMINATE) instead of publishing a function word as if it were a governing verb — independent of, and in addition to, the grammar productions (the negation?/subject_leads productions in particular) that are meant to keep such a word from ever opening the action span in the first place. Membership only, matched against the already-lower-cased candidate lemma; not a pattern.",
+  "stoplist": [
+    "the", "a", "an", "no", "not", "never", "neither", "nor", "none", "nobody",
+    "one", "and", "or", "of", "this", "that", "these", "those", "it", "there",
+    "shall", "must", "may", "is", "are", "was", "were", "be", "been", "being",
+    "to", "for", "with", "by", "from", "who", "whom", "whose", "which"
+  ]
+}

@@ -69,6 +69,32 @@ _CORE = re.compile(
     r"^\s*(?P<op>[A-Za-z]+)\s*\(\s*(?P<bearer>[^():]+?)\s*:\s*(?P<action>[^()]+?)\s*\)\s*$",
     re.S)
 
+# exception_status vocabulary (artifacts/gazetteer/exception.json's xref_markers /
+# external_terms, mirrored here so the bundled engine stays self-contained).
+NONE_DETECTED = "none_detected"
+INTERNAL_PARSED = "internal_parsed"
+EXCEPTION_XREF_UNRESOLVED = "EXCEPTION_XREF_UNRESOLVED"
+EXCEPTION_EXTERNAL_UNRESOLVED = "EXCEPTION_EXTERNAL_UNRESOLVED"
+_XREF_MARKERS = ("article", "art.", "section", "sec.", "annex", "paragraph", "chapter", "§")
+_EXTERNAL_TERMS = ("law", "statute", "regulation", "directive", "enactment")
+
+
+def classify_exception_status(exception_text: str) -> str:
+    """The exception_status a clause's own text implies — a pure function of
+    the text (mirrors deontic.prose_grammar.classify_exception_status). No
+    cross-reference is resolved: an ``Article N`` / ``law`` marker only
+    classifies the clause as unresolved.
+    """
+    if not (exception_text or "").strip():
+        return NONE_DETECTED
+    words = {w.lower() for w in re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ§]+", exception_text)}
+    if any(marker.rstrip(".") in words or marker in exception_text.lower()
+           for marker in _XREF_MARKERS):
+        return EXCEPTION_XREF_UNRESOLVED
+    if any(term in words for term in _EXTERNAL_TERMS):
+        return EXCEPTION_EXTERNAL_UNRESOLVED
+    return INTERNAL_PARSED
+
 
 class DeonticSyntaxError(ValueError):
     """A statement string does not conform to the deontic grammar."""
@@ -95,9 +121,13 @@ def classify_incident(modal: str, action: str, raw: str) -> str:
 
 
 def _formula(operator, bearer, action, *, condition="", exception="",
-             negated=False, incident="", counterparty="") -> dict[str, Any]:
+             exception_status=None, negated=False, incident="",
+             counterparty="") -> dict[str, Any]:
+    if exception_status is None:
+        exception_status = classify_exception_status(exception)
     return {"operator": operator, "bearer": bearer, "action": action,
-            "condition": condition, "exception": exception, "negated": negated,
+            "condition": condition, "exception": exception,
+            "exception_status": exception_status, "negated": negated,
             "incident": incident, "counterparty": counterparty}
 
 
@@ -173,9 +203,12 @@ def validate(formula: dict[str, Any]) -> dict[str, Any]:
 
 
 def project(formula: dict[str, Any]) -> dict[str, Any]:
-    return {k: formula.get(k, "") if k not in ("negated",) else bool(formula.get("negated", False))
-            for k in ("operator", "bearer", "action", "condition", "exception",
-                      "negated", "incident", "counterparty")}
+    out = {k: formula.get(k, "") if k not in ("negated",) else bool(formula.get("negated", False))
+           for k in ("operator", "bearer", "action", "condition", "exception",
+                     "negated", "incident", "counterparty")}
+    out["exception_status"] = formula.get(
+        "exception_status", classify_exception_status(formula.get("exception", "")))
+    return out
 
 
 def render(formula: dict[str, Any]) -> str:

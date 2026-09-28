@@ -13,7 +13,12 @@
   fourth operator — "right" is not a modality (see Incidents).
 - **Statement:** an operator over a `(bearer : action)` pair, with optional
   `condition` (applicability antecedent), `exception` (defeasibility), and
-  `negated` flag. Structured fields: `incident`, `counterparty`.
+  `negated` flag. `exception_status` (`none_detected` /
+  `internal_parsed` / `EXCEPTION_XREF_UNRESOLVED` /
+  `EXCEPTION_EXTERNAL_UNRESOLVED`) is a pure classification of `exception`'s
+  own text (`deontic.prose_grammar.classify_exception_status`) — no
+  cross-reference is ever resolved. Structured fields: `incident`,
+  `counterparty`.
 - **Incidents (8, the Hohfeld layer):** four correlative pairs —
   `claim`↔`duty`, `privilege`↔`no-right`, `power`↔`liability`,
   `immunity`↔`disability`. Correlative = the counterparty's position over the
@@ -27,7 +32,8 @@ operator = "O" | "P" | "F"
 ```
 
 `parse(f.render())` reproduces the grammar slots (operator/bearer/action/
-condition/exception/negated). The `incident`/`counterparty` are structured
+condition/exception/negated); `exception_status` is derived from `exception`,
+not part of the grammar string. The `incident`/`counterparty` are structured
 fields, not part of the string — move formulae as `project(f)`/`to_dict()`, not
 the rendered text.
 
@@ -53,9 +59,22 @@ the rendered text.
 ## Composition contract (what a reasoner consumes)
 
 Couples to solver by string agreement only — deontic imports no solver type.
-- `dimension_affinity(op)` → a string in `{structural,causal,intentional,
-  temporal,relational}` (`O`/`F`→`causal`, `P`→`intentional`). The consumer
-  builds the typed edge.
+- `dimension_affinity(op)` → always `None`. Deontic is not causal: operators
+  (O/P/F) are OUGHT and bind to no 5D dimension, in any form or under any name
+  (the 5D describes what IS). A norm's content — the regulated action/state —
+  is what a consumer lowers into 5D, never through the operator: the `action`
+  nD coordinate (`nd-system.json`, `concept_reference`) is a reference to an
+  action-type entry the consumer creates from the claim's `spans.content`
+  (never a 5D channel itself), linked to the norm by a structural `embeds`
+  link. Negation is recorded once, on the norm's `negated` axis — the sole
+  authority for a not/never clause; an action-type entry records the same
+  polarity, never a conflicting one. This plane is registered as an nD system
+  on the versum index (the `loomground.planes` entry point, id `deontic`; see
+  `nd-system.json`). A negation adverb after a modal ("not", "never", "at no
+  time"), with or without interposed commas or an interposed phrase (e.g.
+  "shall never, under any circumstances,"), lowers the modal to F, with the
+  negation adverb and any interposed phrase consumed by the matched cue so
+  neither reaches `action` nor is duplicated onto `negated`.
 - `incident_vocabulary()` → the closed 8-set to inject into a norm-theory floor
   (the solver default differs — inject this).
 - `conflict_candidates(formulae)` → collision edges (`predicate=may-conflict-with`).
