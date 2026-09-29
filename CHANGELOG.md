@@ -2,6 +2,13 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
+## [0.2.3](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.2...loomground-deontic-v0.2.3) (2026-09-29)
+
+
+### Documentation
+
+* **contract:** name the 5D cell algebra in solver-sync comments ([dd8ee96](https://github.com/flxk1/loomground-deontic/commit/dd8ee966bec2d02fc0f268bcff3b9aa3c4a92453))
+
 ## [0.2.2](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.1...loomground-deontic-v0.2.2) (2026-09-28)
 
 
