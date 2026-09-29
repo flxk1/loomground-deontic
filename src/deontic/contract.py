@@ -35,8 +35,8 @@ Deontic presents three things, over three seams solver already has:
 The contract couples to solver by string agreement only; this module imports the
 standard library and the deontic language modules, never solver. The dimension
 strings mirror ``loomground_solver.dimensions.Dimension`` values and must stay in
-sync with them (the same discipline that module keeps with the Federation cell
-graph).
+sync with them (the same discipline that module keeps with the 5D cell
+algebra).
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ CONTRACT_VERSION = "0.1.0"
 
 # The reasoning-dimension strings a projected edge may carry. These mirror
 # loomground_solver.dimensions.Dimension's string values; the agreement is by
-# string, not by import. Keep in sync with solver (and its Federation-cell
+# string, not by import. Keep in sync with solver (and its 5D cell
 # alignment) — a value not in solver's enum fails SolverProjection.validate.
 SOLVER_DIMENSIONS = (
     "structural", "causal", "intentional", "temporal", "relational",
