@@ -97,3 +97,69 @@ def test_gate_b_cli_exits_nonzero_on_the_mutated_copy(tmp_path):
     good = subprocess.run([sys.executable, str(CHECKER)], capture_output=True, text=True)
     assert good.returncode == 0, good.stdout + good.stderr
     assert "ALL GREEN" in good.stdout
+
+
+# ── Gate H: the tie-break must survive an alternation-ORDER mutation ───────
+def test_gate_h_passes_on_the_packaged_artifact():
+    ck = _checker()
+    assert ck.check_modal_cue_precedence() == []
+
+
+def test_gate_h_catches_a_reordered_obligation_alternation():
+    """Mutate the obligation pattern so a SHORTER alternative ("shall") is
+    listed ALONGSIDE a longer one that also spells a permission phrase in
+    full ("shall be entitled to"), at an earlier position in the SAME
+    alternation. A naive ``re.search``-based tie-break
+    check returns the first (shorter) match and never notices the longer
+    one is also present; ``check_modal_cue_precedence`` (which tries every
+    contiguous word span, longest first, via ``re.fullmatch``) is not fooled
+    by alternative order and must still catch the overlap."""
+    ck = _checker()
+    doc = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+    for cue in doc["modal_cues"]:
+        if cue["modal"] == "obligation":
+            cue["pattern"] = (
+                r"\b(?:shall|shall be entitled to|must|is obliged to|"
+                r"is required to|has to|muss|m(?:ü|u)ssen|hat zu)\b")
+    fails = ck.check_modal_cue_precedence(doc)
+    assert any("shall be entitled to" in f for f in fails), fails
+
+    # Demonstrate the contrast directly: the NAIVE re.search-first-match
+    # approach the mutation is designed to defeat does NOT catch it (proving
+    # the bug this gate replaces was real, not hypothetical).
+    import re
+    obligation_pattern = next(c["pattern"] for c in doc["modal_cues"] if c["modal"] == "obligation")
+    naive_match = re.search(obligation_pattern, "shall be entitled to", re.I)
+    assert naive_match is not None and naive_match.group(0) == "shall"
+
+
+def test_longest_full_match_words_is_order_independent():
+    ck = _checker()
+    reordered = r"\b(?:shall|shall be entitled to|must)\b"
+    canonical = r"\b(?:shall be entitled to|shall|must)\b"
+    assert ck._longest_full_match_words(reordered, "shall be entitled to") == 4
+    assert ck._longest_full_match_words(canonical, "shall be entitled to") == 4
+    assert ck._longest_full_match_words(reordered, "shall") == 1
+
+
+# ── Gate I: complement_verb_cue sync ────────────────────────────────────────
+def test_gate_i_passes_on_the_packaged_artifact():
+    ck = _checker()
+    assert ck.check_complement_verb_sync() == []
+
+
+def test_gate_i_fails_when_a_verb_is_dropped(tmp_path):
+    ck = _checker()
+    doc = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+    doc["complement_verb_cue"]["verbs"] = [v for v in doc["complement_verb_cue"]["verbs"]
+                                           if v != "intervene"]
+    fails = ck.check_complement_verb_sync(doc)
+    assert any("complement_verb_cue.verbs" in f for f in fails), fails
+
+
+def test_gate_i_fails_when_applies_to_modal_cues_drifts(tmp_path):
+    ck = _checker()
+    doc = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+    doc["complement_verb_cue"]["applies_to_modal_cues"] = ["shall be entitled to"]
+    fails = ck.check_complement_verb_sync(doc)
+    assert any("applies_to_modal_cues" in f for f in fails), fails
