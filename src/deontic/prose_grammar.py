@@ -313,19 +313,28 @@ def _find_condition_lead(text: str, tokens: list[Token]) -> tuple[str, int]:
     """A sentence-initial condition clause up to the first top-level comma.
 
     Returns ``(condition_text, token_index_after_comma)``; ``("", 0)`` when
-    no condition lead opens the sentence.
+    no condition lead opens the sentence. Most leads are stripped from the
+    published condition ("if X," -> condition "X" — condition.json's default,
+    ``keep_lead`` absent/false); a lead marked ``keep_lead: true`` publishes
+    its own words AS PART OF the condition, because the lead itself carries
+    content a stripped reading would lose or leave empty (see
+    ``artifacts/gazetteer/condition.json``'s ``describes`` for why: "at the
+    request of"/"upon the request of" name a request, not only the party;
+    "in such a case" is anaphoric and would otherwise publish an empty
+    condition indistinguishable from an unconditional duty).
     """
     if not tokens:
         return "", 0
     gaz = _load_gazetteer("condition")
-    ranked = _sorted_phrases([{"phrase": p} for p in gaz["lead_phrases"]])
+    ranked = _sorted_phrases(gaz["lead_phrases"])
     m = _match_longest(tokens, 0, ranked)
     if m is None:
         return "", 0
-    lead_end, _entry = m
+    lead_end, entry = m
+    start = 0 if entry.get("keep_lead") else lead_end
     for k in range(lead_end, len(tokens)):
         if tokens[k].text == ",":
-            cond = _slice(text, tokens, lead_end, k)
+            cond = _slice(text, tokens, start, k)
             return cond, k + 1
     return "", 0
 
