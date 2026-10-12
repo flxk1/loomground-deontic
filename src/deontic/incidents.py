@@ -91,6 +91,18 @@ def is_advantage(incident: str) -> bool:
 # "representative(s)": the GDPR/NIS2 defined term ("an authorised
 # representative") names a role, not an exercised power.
 #
+# "empower"/"empowers"/"empowered"/"empowering" (GDPR Art. 12(8) "The
+# Commission shall be empowered to adopt delegated acts ...") is
+# explicit-form-anchored for the same reason as authoris/authoriz: the bare
+# stem+\w* wildcard would also spell the noun "empowerment".
+#
+# "(?:have|has) the power to" is a phrase alternative, not a single verb: a
+# permission phrased as "shall have the power to <verb>" names a Hohfeldian
+# power by the phrase ITSELF, regardless of which verb follows it ("adopt
+# delegated acts", "order the controller to comply", "impose a fine" are
+# none of them power_verb matches on their own) — the phrase is the power
+# cue here, the same way "is authorised to"/"is empowered to" already are.
+#
 # Left unchanged, checked and found with no such collision: terminat\w*,
 # rescind\w*, revoke\w*, consent\w*, suspend\w* ("terminal", "rescission",
 # "revocation", "consensus", "suspension" all diverge from the verb stem
@@ -114,6 +126,8 @@ _POWER_VERBS = re.compile(
     r"approve|approves|approved|approving|"
     r"authoris(?:e|es|ing|ed(?!\s+representatives?\b))|"
     r"authoriz(?:e|es|ing|ed(?!\s+representatives?\b))|"
+    r"empower|empowers|empowered|empowering|"
+    r"(?:have|has)\s+the\s+power\s+to|"
     r"assign|assigns|assigned|assigning|"
     r"renew|renews|renewed|renewing|"
     r"exercis\w*|"

@@ -55,6 +55,46 @@ proves they have not:
      English-only (Phase 1 scope, `modal_lexemes.json`), so extraction.json's
      German alternatives are a deliberate, pre-existing asymmetry for a
      generic (code-independent) consumer, not a drift this gate polices.
+  H. Modal-cue precedence — a multi-word gazetteer phrase mapped to one modal
+     (e.g. permission's "shall be entitled to") can also contain, as a
+     literal substring, a shorter phrase/lexeme published under a DIFFERENT
+     modal's own extraction.json pattern (obligation's bare "shall" sits
+     inside "shall be entitled to" too). `describes` states the tie-break a
+     plain consumer applies when more than one `modal_cues` pattern matches
+     the same text: the pattern naming the LONGER literal phrase wins (the
+     same longest-match-first rule `modal_lexemes.json`'s own gazetteer-driven
+     parser already applies at a single token position). This gate proves
+     the rule actually resolves every such overlap rather than merely stating
+     it: for every multi-word gazetteer phrase, the LONGEST span of that
+     phrase that any OTHER modal's pattern can fully match must be STRICTLY
+     SHORTER (fewer words) than the phrase itself, so "longer wins" always
+     picks the gazetteer's own modal, never a tie a plain consumer could not
+     break. "Longest span a pattern can match" is computed directly
+     (`_longest_full_match_words`: every contiguous word span of the phrase,
+     longest first, tested with `re.fullmatch`) rather than trusting a single
+     `re.search` — Python's `re` tries an alternation's branches in LISTED
+     ORDER and returns the first one that matches, which is not necessarily
+     the longest; a mutated pattern that lists a short alternative (plain
+     "shall") before a long one that also matches the same text ("shall be
+     entitled to") would make a bare `re.search`-based check miss the true
+     overlap entirely. `tests/test_check_extraction.py` proves this with such
+     a mutation: Gate H using plain `re.search` passes it (a false green);
+     Gate H as implemented here fails it.
+  I. complement_verb_cue sync — the six `requires_verb_complement` phrases
+     (`modal_lexemes.json`) read as a permission ONLY when the word right
+     after the match is one of a closed, positive list of base-form verbs,
+     AND the word after THAT is not a noun-marker for that verb
+     (`gazetteer/complement_verbs.json`'s `verbs`/`noun_markers`/
+     `verb_specific_noun_markers`; `deontic.prose_grammar`'s own gate); one
+     of the six ("shall have the power to") additionally has no fallback on
+     a failed check (`abstain_if_no_verb_complement` in the gazetteer,
+     `no_fallback_modal_cue` here). This gate holds every one of those
+     fields equal to the two gazetteer sources, so a plain, code-free
+     consumer's reading of "shall be entitled to compensation" (no verb
+     complement), "shall be entitled to transfer OF the data" (a noun-marker
+     overlap), or "shall have the power to audit" (the no-fallback phrase,
+     where a plain consumer must NOT fall back to reading it as an
+     obligation) can never silently drift from what the parser itself does.
 
 Run standalone: python3 tools/check_extraction.py [--artifact PATH]
 (`--artifact` checks another copy of extraction.json; the tests use it to prove
@@ -106,6 +146,42 @@ def check_incident_cues(ex: dict | None = None) -> list[str]:
                       "deontic.incidents._REQUIRE_FORMS")
     if req.get("scope") != "action":
         fails.append("require_power_cue.scope != 'action'")
+    return fails
+
+
+def check_complement_verb_sync(ex: dict | None = None) -> list[str]:
+    """Gate I: complement_verb_cue (the ADDITIVE condition over the word
+    following a match on one of the six requires_verb_complement modal_cues
+    phrases, and the word after THAT) equals both
+    artifacts/gazetteer/complement_verbs.json (the parser's own list and
+    noun-marker tables) and artifacts/gazetteer/modal_lexemes.json's own set
+    of requires_verb_complement-flagged phrases (and the single
+    abstain_if_no_verb_complement-flagged phrase), so a plain consumer's
+    permission reading of these six phrases can never silently drift from
+    deontic.prose_grammar's own gate — see the module docstring, Gate I."""
+    ex = EX if ex is None else ex
+    fails: list[str] = []
+    cue = ex.get("complement_verb_cue", {})
+    gaz = _load_gazetteer("complement_verbs")
+    if set(cue.get("verbs", [])) != set(gaz["verbs"]):
+        fails.append("complement_verb_cue.verbs != gazetteer/complement_verbs.json's verbs")
+    if set(cue.get("noun_markers", [])) != set(gaz["noun_markers"]):
+        fails.append("complement_verb_cue.noun_markers != gazetteer/"
+                      "complement_verbs.json's noun_markers")
+    if cue.get("verb_specific_noun_markers", {}) != gaz["verb_specific_noun_markers"]:
+        fails.append("complement_verb_cue.verb_specific_noun_markers != gazetteer/"
+                      "complement_verbs.json's verb_specific_noun_markers")
+    modal_gaz = _load_gazetteer("modal_lexemes")
+    gaz_flagged = {e["phrase"] for e in modal_gaz["phrases"] if e.get("requires_verb_complement")}
+    if set(cue.get("applies_to_modal_cues", [])) != gaz_flagged:
+        fails.append("complement_verb_cue.applies_to_modal_cues != gazetteer/"
+                      "modal_lexemes.json's requires_verb_complement-flagged phrases")
+    gaz_no_fallback = {e["phrase"] for e in modal_gaz["phrases"]
+                       if e.get("abstain_if_no_verb_complement")}
+    cue_no_fallback = {cue["no_fallback_modal_cue"]} if cue.get("no_fallback_modal_cue") else set()
+    if cue_no_fallback != gaz_no_fallback:
+        fails.append("complement_verb_cue.no_fallback_modal_cue != gazetteer/"
+                      "modal_lexemes.json's abstain_if_no_verb_complement-flagged phrase(s)")
     return fails
 
 
@@ -353,6 +429,60 @@ def check_gazetteer_sync_reverse(ex: dict | None = None) -> list[str]:
     return fails
 
 
+_BARE_LEXEME_TO_MODAL = {"shall": "obligation", "must": "obligation", "may": "permission"}
+
+
+def _longest_full_match_words(pattern: str, phrase: str) -> int:
+    """The word count of the LONGEST contiguous word span of ``phrase`` that
+    ``pattern`` matches in full (``re.fullmatch``), tried longest span
+    first; ``0`` if no span matches at all. Deliberately not a single
+    ``re.search``: Python's ``re`` tries an alternation's branches in LISTED
+    ORDER and stops at the first one that matches at a position, which is
+    not necessarily the longest available match — a pattern whose
+    alternatives are `(?:shall|shall be entitled to|...)` would have
+    `re.search` return "shall" (the first-listed, shorter alternative) even
+    though "shall be entitled to" (a later, longer alternative) also
+    matches the same text. Trying every candidate span directly, longest
+    first, is immune to alternative ORDER inside the pattern."""
+    words = phrase.split()
+    for span_len in range(len(words), 0, -1):
+        for start in range(0, len(words) - span_len + 1):
+            span = " ".join(words[start:start + span_len])
+            if re.fullmatch(pattern, span, re.I):
+                return span_len
+    return 0
+
+
+def check_modal_cue_precedence(ex: dict | None = None) -> list[str]:
+    """Gate H: where a multi-word gazetteer phrase overlaps a DIFFERENT
+    modal's own extraction.json pattern, "the longer literal phrase wins"
+    (this file's published tie-break, mirroring modal_lexemes.json's own
+    longest-match-first dispatch) must actually resolve the overlap — see
+    the module docstring, Gate H."""
+    ex = EX if ex is None else ex
+    fails: list[str] = []
+    modal_patterns = {c["modal"]: c["pattern"] for c in ex["modal_cues"]}
+    modal_gaz = _load_gazetteer("modal_lexemes")
+    for entry in modal_gaz["phrases"]:
+        phrase = entry["phrase"]
+        words = phrase.split()
+        if len(words) < 2:
+            continue  # a bare lexeme is the baseline other cues overlap WITH
+        own_modal = "prohibition" if entry.get("operator") == "F" else \
+            _BARE_LEXEME_TO_MODAL[entry["lexeme"]]
+        for other_modal, pattern in modal_patterns.items():
+            if other_modal == own_modal:
+                continue
+            overlap_len = _longest_full_match_words(pattern, phrase)
+            if overlap_len >= len(words):
+                fails.append(
+                    f"gazetteer phrase {phrase!r} ({own_modal}) is matched by "
+                    f"{other_modal}'s modal_cues pattern over {overlap_len} word(s), "
+                    f"equal to or longer than the phrase's own {len(words)} word(s): "
+                    "the 'longer phrase wins' tie-break cannot disambiguate this pair")
+    return fails
+
+
 _CHECKS = (
     ("incident cues equal the language", check_incident_cues),
     ("operator mapping equals the language; no operator carries a 5D dimension", check_operator_mapping),
@@ -361,6 +491,8 @@ _CHECKS = (
     ("validity rules stay on the published incidents", check_validity_rules),
     ("gazetteer cues are covered by the published extraction cues", check_gazetteer_sync),
     ("extraction cues do not outrun the gazetteer (English alternatives)", check_gazetteer_sync_reverse),
+    ("the longer-phrase tie-break resolves every modal_cues overlap", check_modal_cue_precedence),
+    ("complement_verb_cue stays in sync with the gazetteer", check_complement_verb_sync),
 )
 
 
