@@ -233,6 +233,77 @@
   exception lead ("be without prejudice to") is not an exception. The
   grammar's `action` production names the scope branch. Test:
   `tests/test_scope_statements.py`.
+* **deontic:** condition and exception leads — `artifacts/gazetteer/
+  condition.json` gained the sentence-initial lead "in the event of"
+  (stripped from the published condition, e.g. "in the event of a breach,"
+  -> condition "a breach") and `keep_lead: true` entries for "at the request
+  of"/"upon the request of"/"in such a case" — these publish the lead's own
+  words AS PART OF the condition, since stripping them would either lose the
+  request itself ("at the request of the data subject" is a request, not
+  only a party) or, for the anaphoric "in such a case", publish an empty
+  condition indistinguishable from an unconditional duty.
+  `deontic.prose_grammar._find_condition_lead` reads the new `keep_lead`
+  flag; `artifacts/extraction.json` gained a second slot cue,
+  `condition_lead_with_phrase`, for the generic (code-independent) consumer.
+  "in the case of" is deliberately NOT a condition lead: it is a genuine
+  condition on some real text but a bare scope/topic marker with no
+  conditional force on other real text, and the surface alone cannot tell
+  the two apart, so it is not consumed at all. "by way of derogation from"/
+  "abweichend von" are likewise NOT exception leads: "by way of derogation
+  from X, R" means R overrides X — R is the exception to X, not the other
+  way round — so modelling it as the rule's own exception would invert the
+  relation; it is not modelled as anything else either.
+* **deontic:** power-verb cues (`deontic.incidents._POWER_VERBS`) — eight
+  stems are now word-anchored to their explicit finite-verb forms instead of
+  a stem+`\w*` wildcard, because the wildcard also matched an unrelated
+  common noun/adjective: `elect\w*` matched "electronic"/"election"/
+  "elector"/"electoral"; `withdraw\w*` matched "withdrawal"; `waive\w*`
+  matched "waiver"; `approv\w*` matched "approval"; `authoris\w*`/
+  `authoriz\w*` matched "authorisation"/"authorization"; `assign\w*` matched
+  "assignment"/"assignable"; `renew\w*` matched "renewal"; `instruct\w*`
+  matched "instruction(s)"/"instructor". "authorised"/"authorized" is
+  additionally excluded immediately before "representative(s)" (a defined
+  role, not an exercised power). `terminat\w*`/`rescind\w*`/`revoke\w*`/
+  `consent\w*`/`suspend\w*` were checked and found with no such collision
+  (left unchanged); `exercis\w*` is left unchanged on purpose ("exercise" is
+  the identical spelling for the noun and the verb in English — no
+  word-anchoring can separate them); the German stems are also left
+  unchanged and documented as a pre-existing, out-of-scope issue (German
+  nominalises most of them the same "-ung" way, and two are zero-derivation
+  like "exercise"). "require" is deliberately NOT a `power_verb` regex
+  alternative: a permission to require something of another party is a
+  Hohfeldian power, but only the exact active forms "require"/"requires"/
+  "requiring" count — never any form of "required", since a passive or
+  reduced-relative "required" ("as required under Article 6", "information
+  required to assess compliance") has no reliable surface cue separating it
+  from an active one — checked over the `action` span ONLY, never the whole
+  raw sentence. Published as structured data, `require_power_cue`
+  (`artifacts/extraction.json`), that a generic consumer can apply by plain
+  word membership without importing any code, and wired into
+  `incident_rules` (`when_matches: "require_power_cue"`) so the published
+  rules surface reproduces `classify_incident`'s "require" reading, not only
+  its `power_verb` reading. `classify_incident`'s `modal == "obligation"`
+  branch returns "duty" before ever consulting `power_verb` or
+  `require_power_cue`, so "require" inside an obligation's own action text
+  is never misread as a power/disability. Mirrored byte-for-byte into
+  `skills/deontic/deontic_engine.py`; `tools/check_companion.py` gained a
+  power-verb cue parity check (Gate C) covering both the regex/helper
+  sources and `classify_incident` itself on both sides, so a scope
+  regression (checking the whole raw sentence instead of the action span)
+  cannot pass silently. `tools/check_extraction.py` gained a reverse
+  gazetteer↔extraction.json sync check (Gate G) for `condition_lead`/
+  `condition_lead_with_phrase`/`exception_lead` — every ENGLISH alternative
+  `extraction.json` publishes must also be a gazetteer `lead_phrases` entry
+  (German alternatives are an explicit, documented exemption: the
+  gazetteer-driven parser is English-only) — and an oracle extension so the
+  "incident rules reproduce `classify_incident`" gate covers the "require"
+  branch too. `artifacts/conformance/prose.json` gained
+  `condition-lead-in-the-case-of-not-consumed`, `condition-lead-request-of`,
+  `condition-lead-in-such-a-case`, `condition-lead-in-the-event-of` and
+  `exception-lead-derogation-not-consumed`. A GDPR 2016/679 + NIS2 2022/2555
+  corpus comparison against origin/main shows 3 prose-parser improvements, 0
+  regressions, 4 incident-classification false-positive fixes, 0
+  regressions. Tests: `tests/test_cue_gaps.py`, `tests/test_check_companion.py`.
 
 ## [0.2.1](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.0...loomground-deontic-v0.2.1) (2026-09-10)
 

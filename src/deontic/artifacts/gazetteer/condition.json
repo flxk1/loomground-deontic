@@ -1,5 +1,15 @@
 {
-  "describes": "Lead words/phrases that open a sentence-initial condition clause (condition_ in deontic.ebnf's statement production), up to the first top-level comma. Matched word-for-word at the token position, not by a pattern.",
-  "lead_phrases": ["if", "where", "when", "provided that", "subject to"],
+  "describes": "Lead words/phrases that open a sentence-initial condition clause (condition_ in deontic.ebnf's statement production), up to the first top-level comma. Matched word-for-word at the token position, not by a pattern. Each entry is {phrase, keep_lead}: keep_lead (default false/omitted) means the lead's own words are stripped from the published condition (the convention: 'if X,' -> condition 'X'); keep_lead: true means the lead's own words are published AS PART OF the condition text, because the lead itself names the only content there is. 'at the request of'/'upon the request of' are keep_lead — stripping the lead would leave only the requesting party ('the data subject'), which is NOT the condition (a request, not a party, is what makes the norm applicable). 'in such a case' is keep_lead for a second reason too: it is anaphoric (names no antecedent text of its own, referring back to a prior sentence), so stripping it would leave an EMPTY condition indistinguishable from an unconditional duty — the plane's own convention (see exception_status's EXCEPTION_XREF_UNRESOLVED/EXCEPTION_EXTERNAL_UNRESOLVED) is never to publish an unresolved reference as if it resolved to nothing; keeping the phrase itself as the condition text does that without any schema change (no new status axis). 'in the case of' is NOT a lead here (do not add it without a disambiguation rule): on real text it is a genuine condition lead ('In the case of general written authorisation, ...' -> GDPR 28(2)) often enough, but also a bare scope/topic marker with no conditional force ('In the case of the controller, the processor shall assist.' states who the clause is ABOUT, not a condition on it) and the parser cannot tell the two apart from the surface alone — per this plane's own rule (deontic.incidents' 'classification abstains rather than guessing', the same principle applied to a slot cue), an ambiguous lead is not consumed at all, so an 'In the case of ...' sentence falls through to the pre-existing (unconsumed-lead) behaviour rather than silently mis-reading a scope clause as a condition. Sentence-initial only, by design (condition_ is a sibling constituent of modal_frame, never nested inside it); a lead phrase appearing after the modal (inside the interposed/action span) is not lifted into condition.",
+  "lead_phrases": [
+    { "phrase": "if" },
+    { "phrase": "where" },
+    { "phrase": "when" },
+    { "phrase": "provided that" },
+    { "phrase": "subject to" },
+    { "phrase": "in the event of" },
+    { "phrase": "at the request of", "keep_lead": true },
+    { "phrase": "upon the request of", "keep_lead": true },
+    { "phrase": "in such a case", "keep_lead": true }
+  ],
   "tail_leads": ["before", "after", "until", "once", "provided that"]
 }
