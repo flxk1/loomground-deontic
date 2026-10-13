@@ -67,6 +67,8 @@ _POWER_VERBS = re.compile(
     r"approve|approves|approved|approving|"
     r"authoris(?:e|es|ing|ed(?!\s+representatives?\b))|"
     r"authoriz(?:e|es|ing|ed(?!\s+representatives?\b))|"
+    r"empower|empowers|empowered|empowering|"
+    r"(?:have|has)\s+the\s+power\s+to|"
     r"assign|assigns|assigned|assigning|"
     r"renew|renews|renewed|renewing|"
     r"exercis\w*|"

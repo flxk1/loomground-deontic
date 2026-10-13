@@ -158,6 +158,71 @@ def _match_longest(tokens: list[Token], i: int,
     return None
 
 
+def _has_verb_complement(tokens: list[Token], start: int, limit: int,
+                          complement: dict) -> bool:
+    """True iff ``tokens[start:limit]`` opens on an infinitival verb phrase:
+    the first word token at or after ``start`` is, case-insensitively, a
+    member of the closed ``complement["verbs"]`` positive list (see
+    ``artifacts/gazetteer/complement_verbs.json``'s own ``describes`` field
+    for the list and how it was derived), AND the SECOND word token (if
+    any) is not one of the noun-marker words that signal the matched word's
+    homograph NOUN reading instead ("entitled to TRANSFER OF the data",
+    "entitled to ACCESS TO the file" — ``complement["noun_markers"]``
+    plus the per-verb extras in ``complement["verb_specific_noun_markers"]``;
+    same file, same field). A POSITIVE check, not a stoplist: an English
+    infinitive complement is always the bare verb form, so a gerund
+    ("receiving compensation"), a past participle ("paid annual leave") or
+    a plain noun/adjective ("fair compensation", "data portability", "its
+    own investigative powers") is rejected by construction — it is simply
+    never spelled like a member of this list — rather than by a separate
+    rule trying to recognise it. One bare word is enough ("to INTERVENE.",
+    "to OBJECT.") when that word is itself a listed verb; no minimum word
+    count is imposed."""
+    word_idxs = [k for k in range(start, limit) if tokens[k].is_word]
+    if not word_idxs:
+        return False
+    verb = tokens[word_idxs[0]].lower
+    if verb not in complement["verbs"]:
+        return False
+    if len(word_idxs) < 2:
+        return True
+    following = tokens[word_idxs[1]].lower
+    markers = set(complement["noun_markers"]) | set(
+        complement["verb_specific_noun_markers"].get(verb, []))
+    return following not in markers
+
+
+def _match_longest_filtered(tokens: list[Token], i: int,
+                             ranked: list[tuple[list[str], dict]],
+                             complement: dict) -> tuple[int, dict] | None:
+    """Like :func:`_match_longest`, but an entry carrying
+    ``requires_verb_complement: true`` is only accepted when
+    :func:`_has_verb_complement` holds for the span right after it;
+    otherwise the search falls through to the next (shorter) ranked
+    alternative at the SAME token position — the gazetteer's own
+    longest-match-first dispatch, minus a match this entry's own semantics
+    cannot support — UNLESS that entry also carries
+    ``abstain_if_no_verb_complement: true`` ("shall have the power to"
+    only), in which case the whole search at this position fails outright
+    (``None``, no further ranked alternative tried): that entry's own
+    shorter fallback ("shall" alone) does not abstain on its own terms the
+    way the other five entries' fallbacks do, so falling through to it
+    would reach a wrong accepted O/duty reading instead of abstaining. Used
+    for modal_head matching only (interposed/exception/condition leads
+    carry no such flag and are unaffected)."""
+    for words, entry in ranked:
+        end = _match_words_at(tokens, i, words)
+        if end is None:
+            continue
+        if entry.get("requires_verb_complement") and not _has_verb_complement(
+                tokens, end, len(tokens), complement):
+            if entry.get("abstain_if_no_verb_complement"):
+                return None
+            continue
+        return end, entry
+    return None
+
+
 def _skip_delimiters(tokens: list[Token], i: int) -> int:
     while i < len(tokens) and not tokens[i].is_word:
         i += 1
@@ -377,11 +442,27 @@ def analyze(sentence: str) -> ProseFrame:
     condition, after_cond = _find_condition_lead(text, tokens)
 
     modal_gaz = _sorted_phrases(_load_gazetteer("modal_lexemes")["phrases"])
+    complement_cue = _load_gazetteer("complement_verbs")
+    complement = {
+        "verbs": frozenset(w.lower() for w in complement_cue["verbs"]),
+        "noun_markers": frozenset(w.lower() for w in complement_cue["noun_markers"]),
+        "verb_specific_noun_markers": {
+            k.lower(): frozenset(w.lower() for w in v)
+            for k, v in complement_cue["verb_specific_noun_markers"].items()
+        },
+    }
 
-    # earliest modal_head match over the (post-condition) token stream
+    # earliest modal_head match over the (post-condition) token stream. An
+    # entry carrying requires_verb_complement (e.g. "shall be entitled to")
+    # whose complement does not pass _has_verb_complement is skipped in
+    # favour of the next (shorter) ranked alternative at this SAME position
+    # (or the whole position fails outright for "shall have the power to" —
+    # see _match_longest_filtered's own docstring for why), so a position
+    # with no acceptable match at all still moves the scan rightward exactly
+    # as _match_longest did.
     found = None
     for i in range(after_cond, len(tokens)):
-        m = _match_longest(tokens, i, modal_gaz)
+        m = _match_longest_filtered(tokens, i, modal_gaz, complement)
         if m is not None:
             end, entry = m
             found = (i, end, entry["lexeme"], entry.get("operator"), bool(entry.get("negates")))
