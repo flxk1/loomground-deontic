@@ -18,7 +18,11 @@ published cues cannot drift from the language they claim to describe. This gate
 proves they have not:
 
   A. Incident cues — the power-verb and immunity regex sources equal the compiled
-     sources in `deontic.incidents`.
+     sources in `deontic.incidents`, and `require_power_cue`'s structured data
+     equals `deontic.incidents`' own "require" constants ("require" is
+     deliberately NOT a `power_verb` regex alternative — see
+     `require_power_cue`'s own `describes` for why — so it gets its own
+     equality check here).
   B. Operator mapping / no-dimension rule (Round 4, deontic-is-ought correction:
      D1 reversed) — `modal_operator` equals the language's modal→operator, and
      the published artifact carries NO operator->5D-dimension binding at all:
@@ -40,6 +44,17 @@ proves they have not:
      (read from `artifacts/gazetteer/*.json`, the parser's single source of
      truth) is matched by this file's `modal_cues`/`slot_cues` regex, so the
      two published surfaces cannot silently diverge.
+  G. Gazetteer sync, reverse direction — for `condition_lead`,
+     `condition_lead_with_phrase` and `exception_lead`, every ENGLISH literal
+     alternative actually published in the regex is also a gazetteer
+     `lead_phrases` entry, so this file cannot carry an English alternative
+     the parser does not recognise (Gate F alone only catches the opposite
+     drift — a gazetteer entry missing from the regex). German alternatives
+     are exempted by an explicit, documented allowlist
+     (`_NON_ENGLISH_ALTERNATIVES`): the gazetteer-driven parser is
+     English-only (Phase 1 scope, `modal_lexemes.json`), so extraction.json's
+     German alternatives are a deliberate, pre-existing asymmetry for a
+     generic (code-independent) consumer, not a drift this gate polices.
 
 Run standalone: python3 tools/check_extraction.py [--artifact PATH]
 (`--artifact` checks another copy of extraction.json; the tests use it to prove
@@ -85,6 +100,12 @@ def check_incident_cues(ex: dict | None = None) -> list[str]:
         fails.append("incident_cues.power_verb != deontic.incidents._POWER_VERBS")
     if ex["incident_cues"]["immunity"] != di._IMMUNITY_CUES.pattern:
         fails.append("incident_cues.immunity != deontic.incidents._IMMUNITY_CUES")
+    req = ex.get("require_power_cue", {})
+    if set(req.get("active_forms", [])) != set(di._REQUIRE_FORMS):
+        fails.append("require_power_cue.active_forms != "
+                      "deontic.incidents._REQUIRE_FORMS")
+    if req.get("scope") != "action":
+        fails.append("require_power_cue.scope != 'action'")
     return fails
 
 
@@ -121,15 +142,26 @@ def check_operator_mapping(ex: dict | None = None) -> list[str]:
     return fails
 
 
+def _matches_cue(ex: dict, wm: str, action: str, raw: str) -> bool:
+    """A `when_matches` cue is either a regex in `incident_cues` (checked over
+    `action + raw`), or `require_power_cue` — structured data, checked over
+    `action` ONLY, by plain word membership (a generic consumer applies this
+    without a regex and without importing any code)."""
+    if wm == "require_power_cue":
+        req = ex.get("require_power_cue", {})
+        words = {w.lower() for w in re.findall(r"[A-Za-z]+", action or "")}
+        return bool(words & set(req.get("active_forms", [])))
+    blob = f"{action} {raw}"
+    return bool(re.search(ex["incident_cues"][wm], blob, re.I))
+
+
 def _apply_rules(modal: str, action: str, raw: str, ex: dict | None = None) -> str:
     ex = EX if ex is None else ex
-    blob = f"{action} {raw}"
-    cues = ex["incident_cues"]
     for rule in ex["incident_rules"]:
         if rule["modal"] != modal:
             continue
         wm = rule.get("when_matches")
-        if wm and not re.search(cues[wm], blob, re.I):
+        if wm and not _matches_cue(ex, wm, action, raw):
             continue
         return rule["incident"]
     return ""
@@ -143,6 +175,13 @@ _ORACLE = [
     ("prohibition", "be amended", "this agreement may not be amended"),  # immunity cue
     ("permission", "terminate the contract", "may terminate"),          # power verb -> power
     ("permission", "access the record", "may access"),                  # -> privilege
+    ("permission",
+     "require controllers to consult with, and obtain prior authorisation "
+     "from, the supervisory authority",
+     "Member State law may require controllers to consult with, and obtain "
+     "prior authorisation from, the supervisory authority."),           # require -> power
+    ("prohibition", "require any specific authorisation",
+     "Such a transfer shall not require any specific authorisation."),  # require -> disability
 ]
 
 
@@ -231,11 +270,15 @@ def check_gazetteer_sync(ex: dict | None = None) -> list[str]:
                          "not covered by extraction.json modal_cues[prohibition]")
 
     cond_gaz = _load_gazetteer("condition")
-    for phrase in cond_gaz["lead_phrases"]:
+    for entry in cond_gaz["lead_phrases"]:
+        phrase = entry["phrase"] if isinstance(entry, dict) else entry
+        keep_lead = isinstance(entry, dict) and entry.get("keep_lead")
         probe = f"{phrase} X,"
-        if not re.search(slot["condition_lead"], probe, re.I):
+        pattern = slot["condition_lead_with_phrase"] if keep_lead else slot["condition_lead"]
+        if not re.search(pattern, probe, re.I):
+            key = "condition_lead_with_phrase" if keep_lead else "condition_lead"
             fails.append(f"gazetteer condition lead {phrase!r} not covered by "
-                         "extraction.json slot_cues.condition_lead")
+                         f"extraction.json slot_cues.{key}")
     for phrase in cond_gaz["tail_leads"]:
         probe = f" {phrase} it is sent"
         if not re.search(slot["condition_tail"], probe, re.I):
@@ -260,6 +303,56 @@ def check_gazetteer_sync(ex: dict | None = None) -> list[str]:
     return fails
 
 
+# Gate G's documented, out-of-scope-by-design exemption: German alternatives
+# the English-only (Phase 1 scope) gazetteer-driven parser never recognises.
+# "abweichend" (not "abweichend von") is a pre-existing, unfixed regex issue,
+# exempted here rather than silently widened; see extraction.json's and
+# exception.json's own describes fields.
+_NON_ENGLISH_ALTERNATIVES: dict[str, set[str]] = {
+    "condition_lead": {"wenn", "falls", "sofern", "soweit"},
+    "condition_lead_with_phrase": set(),
+    "exception_lead": {"es sei denn", "abweichend"},
+}
+
+
+def _pattern_alternatives(pattern: str) -> list[str]:
+    """The literal `a|b|c` alternatives inside a pattern's first `(?:...)`
+    non-capturing group, unescaped of the one metacharacter these specific
+    cue patterns use internally (`\\s+`, published as a literal space here).
+    These three patterns (`condition_lead`, `condition_lead_with_phrase`,
+    `exception_lead`) are, by construction, pure literal alternations with no
+    nested group — the one shape this lightweight extraction is safe for."""
+    m = re.search(r"\(\?:([^)]+)\)", pattern)
+    if not m:
+        return []
+    return [alt.replace("\\s+", " ") for alt in m.group(1).split("|")]
+
+
+def check_gazetteer_sync_reverse(ex: dict | None = None) -> list[str]:
+    """Gate G: every ENGLISH alternative this file publishes for
+    condition_lead/condition_lead_with_phrase/exception_lead is also a
+    gazetteer `lead_phrases` entry (see the module docstring, Gate G)."""
+    ex = EX if ex is None else ex
+    fails: list[str] = []
+    slot = ex["slot_cues"]
+    groups = (
+        ("condition_lead", "condition", lambda e: not (isinstance(e, dict) and e.get("keep_lead"))),
+        ("condition_lead_with_phrase", "condition", lambda e: isinstance(e, dict) and e.get("keep_lead")),
+        ("exception_lead", "exception", lambda e: True),
+    )
+    for key, gaz_name, _select in groups:
+        if key not in slot:
+            continue
+        gaz = _load_gazetteer(gaz_name)
+        gaz_phrases = {e["phrase"] if isinstance(e, dict) else e for e in gaz["lead_phrases"]}
+        alts = set(_pattern_alternatives(slot[key])) - _NON_ENGLISH_ALTERNATIVES.get(key, set())
+        extra = alts - gaz_phrases
+        if extra:
+            fails.append(f"extraction.json slot_cues.{key} has English alternative(s) "
+                         f"{sorted(extra)} not in gazetteer/{gaz_name}.json's lead_phrases")
+    return fails
+
+
 _CHECKS = (
     ("incident cues equal the language", check_incident_cues),
     ("operator mapping equals the language; no operator carries a 5D dimension", check_operator_mapping),
@@ -267,6 +360,7 @@ _CHECKS = (
     ("every published pattern compiles", check_regex_validity),
     ("validity rules stay on the published incidents", check_validity_rules),
     ("gazetteer cues are covered by the published extraction cues", check_gazetteer_sync),
+    ("extraction cues do not outrun the gazetteer (English alternatives)", check_gazetteer_sync_reverse),
 )
 
 
