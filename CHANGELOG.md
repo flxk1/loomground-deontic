@@ -326,7 +326,7 @@
 
 * **deontic:** companion reads negated-modal incident from operator ([5ada56b](https://github.com/flxk1/loomground-deontic/commit/5ada56ba05782c7b5038e7fe0fb5e63c239e0dc6))
 * **deontic:** negated modals lower to F, unknown modal fails closed ([4a84d1c](https://github.com/flxk1/loomground-deontic/commit/4a84d1c0d90a92261ad2448c2dd538d3c4168847))
-* make deontic skill discoverable by Codex ([85e7c6d](https://github.com/flxk1/loomground-deontic/commit/85e7c6d3c8a6e64cf06e333573cacfa6c671d0b2))
+* make deontic skill discoverable by agent hosts ([85e7c6d](https://github.com/flxk1/loomground-deontic/commit/85e7c6d3c8a6e64cf06e333573cacfa6c671d0b2))
 
 
 ### Documentation
