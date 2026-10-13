@@ -78,13 +78,73 @@ def is_advantage(incident: str) -> bool:
 
 # Verbs whose exercise alters the parties' legal positions — the signature of a
 # POWER. Concept words (EN + DE seed; language profiles and packs extend).
+#
+# Word-anchored to explicit finite-verb forms rather than a stem+\w* wildcard
+# wherever the bare stem's wildcard suffix also spells an unrelated common
+# noun or adjective, so the derived noun/adjective form never matches:
+# elect\w* matched "electronic"/"election"/"elector"/"electoral";
+# withdraw\w* matched "withdrawal"; waive\w* matched "waiver"; approv\w*
+# matched "approval"; authoris\w*/authoriz\w* matched "authorisation"/
+# "authorization"; assign\w* matched "assignment"/"assignable"; renew\w*
+# matched "renewal"; instruct\w* matched "instruction(s)"/"instructor".
+# "authorised"/"authorized" is additionally excluded immediately before
+# "representative(s)": the GDPR/NIS2 defined term ("an authorised
+# representative") names a role, not an exercised power.
+#
+# Left unchanged, checked and found with no such collision: terminat\w*,
+# rescind\w*, revoke\w*, consent\w*, suspend\w* ("terminal", "rescission",
+# "revocation", "consensus", "suspension" all diverge from the verb stem
+# before the shared prefix runs out). exercis\w* is left unchanged on
+# purpose: English "exercise" is the identical spelling for the noun and the
+# verb (zero-derivation), so no word-anchoring can separate them. The German
+# stems (k(ü|u)ndig.../widerruf.../zur(ü|u)cktret.../verzicht.../
+# zustimm.../genehmig.../abtret.../verl(ä|a)nger.../aus(ü|u)b.../anweis...)
+# are also left unchanged: German nominalises most of these verbs by adding
+# "-ung" to the same stem (Kündigung, Zustimmung, Genehmigung, Abtretung,
+# Verlängerung, Ausübung, Anweisung collide the same way), and two of them
+# (widerruf, verzicht) are zero-derivation like "exercise" — the bare noun
+# ("Widerruf", "Verzicht") IS the verb stem, so even restricting to
+# verb-only suffixes would still match the bare noun via \w*'s zero-width
+# option; a pre-existing, documented, out-of-scope issue.
 _POWER_VERBS = re.compile(
-    r"\b(?:terminat\w*|rescind\w*|revoke\w*|withdraw\w*|waive\w*|"
-    r"consent\w*|approv\w*|authoris\w*|authoriz\w*|assign\w*|"
-    r"renew\w*|exercis\w*|elect\w*|suspend\w*|instruct\w*|"
+    r"\b(?:terminat\w*|rescind\w*|revoke\w*|"
+    r"withdraw(?:s|ing)?|withdrew|withdrawn|"
+    r"waive|waives|waived|waiving|"
+    r"consent\w*|"
+    r"approve|approves|approved|approving|"
+    r"authoris(?:e|es|ing|ed(?!\s+representatives?\b))|"
+    r"authoriz(?:e|es|ing|ed(?!\s+representatives?\b))|"
+    r"assign|assigns|assigned|assigning|"
+    r"renew|renews|renewed|renewing|"
+    r"exercis\w*|"
+    r"elect|elects|elected|electing|"
+    r"suspend\w*|"
+    r"instruct|instructs|instructed|instructing|"
     r"k(?:ü|u)ndig\w*|widerruf\w*|zur(?:ü|u)cktret\w*|verzicht\w*|"
     r"zustimm\w*|genehmig\w*|abtret\w*|verl(?:ä|a)nger\w*|aus(?:ü|u)b\w*|"
     r"anweis\w*)\b", re.I)
+
+# "require": a permission to require something of another party is a
+# Hohfeldian power ("The lender may require the borrower to provide
+# additional security." -> power). It is deliberately NOT a _POWER_VERBS
+# regex alternative: ONLY the active forms "require"/"requires"/"requiring"
+# count — never "required" in any form, since a passive or reduced-relative
+# "required" ("as required under Article 6", "information required to
+# assess compliance", "the measures it considers required") would otherwise
+# false-positive on real text, and there is no reliable surface cue that
+# tells an active past-tense "required" apart from a passive one. Checked
+# ONLY against `action`, never the whole raw sentence: a "require"/"requires"
+# elsewhere in the sentence (a condition, a different clause) must not turn
+# an unrelated permission into a power.
+_REQUIRE_FORMS = frozenset({"require", "requires", "requiring"})
+_WORD_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]+")
+
+
+def _has_active_require(text: str) -> bool:
+    """True iff ``text`` contains "require"/"requires"/"requiring". Scope
+    this to the `action` text only; never the whole raw sentence."""
+    words = {w.lower() for w in _WORD_RE.findall(text or "")}
+    return bool(words & _REQUIRE_FORMS)
 
 # Immunity signature: protection against another's unilateral change of
 # positions ("may not be varied/amended/assigned except…"). Conservative.
@@ -123,11 +183,11 @@ def classify_incident(modal: str, action: str, raw: str) -> str:
     if modal == "prohibition":
         if _IMMUNITY_CUES.search(blob):
             return "immunity"
-        if _POWER_VERBS.search(blob):
+        if _POWER_VERBS.search(blob) or _has_active_require(action):
             return "disability"
         return "duty"
     if modal in ("permission", "right"):
-        return "power" if _POWER_VERBS.search(blob) else "privilege"
+        return "power" if (_POWER_VERBS.search(blob) or _has_active_require(action)) else "privilege"
     return ""
 
 

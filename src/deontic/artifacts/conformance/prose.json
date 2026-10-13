@@ -1,5 +1,5 @@
 {
-  "describes": "Prose vectors for the deontic plane's producer: plain English sentences and the structured statements (statement.schema.json shape) the language lowers each one to. An empty expected list means the sentence states no norm. The first seven are the credit-decision case; the rest cover the published condition and exception cues and the negative-determiner prohibition.",
+  "describes": "Prose vectors for the deontic plane's producer: plain English sentences and the structured statements (statement.schema.json shape) the language lowers each one to. An empty expected list means the sentence states no norm. The first seven are the credit-decision case; the rest cover the published condition and exception cues and the negative-determiner prohibition. condition-lead-request-of, condition-lead-in-such-a-case and condition-lead-in-the-event-of cover slot_cues.condition_lead_with_phrase ('at the request of', 'in such a case' — the lead's own words are published AS PART OF the condition) and the slot_cues.condition_lead entry 'in the event of' (stripped). 'in the case of' and 'by way of derogation from' are deliberately NOT covered by a positive vector here: neither is a lead this plane consumes (see artifacts/gazetteer/condition.json and exception.json's describes for why) — condition-lead-in-the-case-of-not-consumed and exception-lead-derogation-not-consumed pin that absence instead.",
   "vectors": [
     {
       "name": "credit-s1-classification",
@@ -110,6 +110,79 @@
       "name": "embedded-norm-not-asserted",
       "sentence": "The auditor believes that the processor must delete the data.",
       "expected": []
+    },
+    {
+      "name": "condition-lead-in-the-case-of-not-consumed",
+      "sentence": "In the case of a data breach, the controller shall notify the authority.",
+      "expected": []
+    },
+    {
+      "name": "condition-lead-request-of",
+      "sentence": "At the request of the data subject, the controller shall provide a copy.",
+      "expected": [
+        {
+          "operator": "O",
+          "bearer": "controller",
+          "action": "provide a copy",
+          "condition": "At the request of the data subject",
+          "exception": "",
+          "exception_status": "none_detected",
+          "negated": false,
+          "incident": "",
+          "counterparty": ""
+        }
+      ]
+    },
+    {
+      "name": "condition-lead-in-such-a-case",
+      "sentence": "In such a case, the controller shall notify the authority.",
+      "expected": [
+        {
+          "operator": "O",
+          "bearer": "controller",
+          "action": "notify the authority",
+          "condition": "In such a case",
+          "exception": "",
+          "exception_status": "none_detected",
+          "negated": false,
+          "incident": "",
+          "counterparty": ""
+        }
+      ]
+    },
+    {
+      "name": "condition-lead-in-the-event-of",
+      "sentence": "In the event of a conflict, the controller shall notify the authority.",
+      "expected": [
+        {
+          "operator": "O",
+          "bearer": "controller",
+          "action": "notify the authority",
+          "condition": "a conflict",
+          "exception": "",
+          "exception_status": "none_detected",
+          "negated": false,
+          "incident": "",
+          "counterparty": ""
+        }
+      ]
+    },
+    {
+      "name": "exception-lead-derogation-not-consumed",
+      "sentence": "Member States may, by way of derogation from Article 5, provide for exemptions.",
+      "expected": [
+        {
+          "operator": "P",
+          "bearer": "Member States",
+          "action": "by way of derogation from Article 5, provide for exemptions",
+          "condition": "",
+          "exception": "",
+          "exception_status": "none_detected",
+          "negated": false,
+          "incident": "",
+          "counterparty": ""
+        }
+      ]
     }
   ]
 }

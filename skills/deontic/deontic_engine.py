@@ -53,15 +53,46 @@ _CORRELATIVE = {"claim": "duty", "duty": "claim", "privilege": "no-right",
                 "no-right": "privilege", "power": "liability", "liability": "power",
                 "immunity": "disability", "disability": "immunity"}
 
+# Word-anchored to explicit finite-verb forms where a bare stem+\w* wildcard
+# also spelled a common noun/adjective, and "authorised"/"authorized"
+# additionally excluded immediately before "representative(s)" (a defined
+# role, not an exercised power) — mirrors deontic.incidents._POWER_VERBS
+# exactly; a companion drift gate, tools/check_companion.py, holds the two
+# patterns equal.
 _POWER_VERBS = re.compile(
-    r"\b(?:terminat\w*|rescind\w*|revoke\w*|withdraw\w*|waive\w*|consent\w*|"
-    r"approv\w*|authoris\w*|authoriz\w*|assign\w*|renew\w*|exercis\w*|elect\w*|"
-    r"suspend\w*|instruct\w*|k(?:ü|u)ndig\w*|widerruf\w*|zur(?:ü|u)cktret\w*|"
-    r"verzicht\w*|zustimm\w*|genehmig\w*|abtret\w*|verl(?:ä|a)nger\w*|"
-    r"aus(?:ü|u)b\w*|anweis\w*)\b", re.I)
+    r"\b(?:terminat\w*|rescind\w*|revoke\w*|"
+    r"withdraw(?:s|ing)?|withdrew|withdrawn|"
+    r"waive|waives|waived|waiving|"
+    r"consent\w*|"
+    r"approve|approves|approved|approving|"
+    r"authoris(?:e|es|ing|ed(?!\s+representatives?\b))|"
+    r"authoriz(?:e|es|ing|ed(?!\s+representatives?\b))|"
+    r"assign|assigns|assigned|assigning|"
+    r"renew|renews|renewed|renewing|"
+    r"exercis\w*|"
+    r"elect|elects|elected|electing|"
+    r"suspend\w*|"
+    r"instruct|instructs|instructed|instructing|"
+    r"k(?:ü|u)ndig\w*|widerruf\w*|zur(?:ü|u)cktret\w*|verzicht\w*|"
+    r"zustimm\w*|genehmig\w*|abtret\w*|verl(?:ä|a)nger\w*|aus(?:ü|u)b\w*|"
+    r"anweis\w*)\b", re.I)
 _IMMUNITY_CUES = re.compile(
     r"\b(?:not\s+be\s+(?:varied|amended|modified|assigned)|"
     r"nicht\s+(?:ge(?:ä|a)ndert|abgetreten|(?:ü|u)bertragen)\s+werden)\b", re.I)
+
+# "require" (mirrors deontic.incidents._has_active_require exactly — see its
+# comment there for why only the active forms count; a companion drift gate,
+# tools/check_companion.py, keeps the two definitions equal).
+_REQUIRE_FORMS = frozenset({"require", "requires", "requiring"})
+_WORD_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]+")
+
+
+def _has_active_require(text: str) -> bool:
+    """True iff ``text`` contains "require"/"requires"/"requiring". Scoped to
+    the `action` text only; never the whole raw sentence."""
+    words = {w.lower() for w in _WORD_RE.findall(text or "")}
+    return bool(words & _REQUIRE_FORMS)
+
 
 _COND = re.compile(r"^\s*if\s*\[(?P<cond>.*?)\]\s*then\s+", re.S | re.I)
 _EXC = re.compile(r"\s+unless\s*\[(?P<exc>.*?)\]\s*$", re.S | re.I)
@@ -112,11 +143,11 @@ def classify_incident(modal: str, action: str, raw: str) -> str:
     if modal == "prohibition":
         if _IMMUNITY_CUES.search(blob):
             return "immunity"
-        if _POWER_VERBS.search(blob):
+        if _POWER_VERBS.search(blob) or _has_active_require(action):
             return "disability"
         return "duty"
     if modal in ("permission", "right"):
-        return "power" if _POWER_VERBS.search(blob) else "privilege"
+        return "power" if (_POWER_VERBS.search(blob) or _has_active_require(action)) else "privilege"
     return ""
 
 
