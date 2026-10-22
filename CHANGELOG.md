@@ -2,6 +2,14 @@
 <!-- Copyright 2026 flxk1 -->
 # Changelog
 
+## [0.2.4](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.3...loomground-deontic-v0.2.4) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deontic:** add condition leads, narrow power verbs ([#8](https://github.com/flxk1/loomground-deontic/issues/8)) ([0a34fd3](https://github.com/flxk1/loomground-deontic/commit/0a34fd33a12665b9368bb4c66c1b006bfda8eec3))
+* **deontic:** read 'shall be entitled/empowered to' as permission ([#10](https://github.com/flxk1/loomground-deontic/issues/10)) ([846ddfb](https://github.com/flxk1/loomground-deontic/commit/846ddfbf8651f95219794d9020897fbcfceaa7e8))
+
 ## [0.2.3](https://github.com/flxk1/loomground-deontic/compare/loomground-deontic-v0.2.2...loomground-deontic-v0.2.3) (2026-09-29)
 
 
